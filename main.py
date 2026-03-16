@@ -57,8 +57,7 @@ logger = setup_logger()
 # 基础配置
 app = Flask(__name__)
 
-# 挂载静态文件（让 / 访问 index.html）
-app.mount("/", StaticFiles(directory=".", html=True), name="static")
+
 
 # 自动管理SECRET_KEY，重启不失效
 SECRET_KEY_FILE = '.secret_key'
@@ -605,7 +604,22 @@ def get_history():
         logger.error(f"获取历史接口异常：{str(e)} | 请求数据：{request.get_json()}", exc_info=True)
         return jsonify({'code': 500, 'msg': '服务器内部错误'})
 
-# ========== 6. 跨域支持 ==========
+
+# ========== 6. 根路径路由（新增） ==========
+import os
+from flask import send_from_directory
+
+@app.route('/')
+def index():
+    """根路径返回前端页面"""
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    return send_from_directory(current_dir, 'index.html')
+
+@app.route('/favicon.ico')
+def favicon():
+    return '', 204
+
+# ========== 7. 跨域支持 ==========
 @app.after_request
 def after_request(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
@@ -613,7 +627,7 @@ def after_request(response):
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
     return response
 
-# ========== 7. 启动服务（适配Railway） ==========
+# ========== 8. 启动服务（适配Railway） ==========
 if __name__ == '__main__':
     # 启动前校验API配置
     if API_KEY == "这里填写你的内测API_KEY" or not API_KEY:
