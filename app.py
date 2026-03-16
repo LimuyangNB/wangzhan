@@ -9,6 +9,10 @@ app = Flask(__name__)
 # 替换手动跨域头，用flask-cors一键配置（更稳定）
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
+@app.route('/')
+def hello():
+    return "Hello World"
+
 # 模拟数据库（原有逻辑不变）
 users = {}
 vip_packages = {
