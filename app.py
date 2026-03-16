@@ -10,8 +10,7 @@ app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 @app.route('/')
-def hello():
-    return "Hello World"
+
 
 # 模拟数据库（原有逻辑不变）
 users = {}
