@@ -1,0 +1,114 @@
+2026-03-15 15:29:02 - INFO - server - 数据库初始化完成
+2026-03-15 15:29:02 - INFO - server - AI内容创作工具服务启动 | 地址：http://127.0.0.1:8080
+2026-03-15 15:33:52 - ERROR - server - 登录接口异常：no such column: password | 请求数据：{'username': 'limuyag', 'password': '123456'}
+Traceback (most recent call last):
+  File "C:\Users\18880\Desktop\xm-1\server.py", line 197, in login
+    cursor.execute(
+sqlite3.OperationalError: no such column: password
+2026-03-15 15:33:53 - ERROR - server - 登录接口异常：no such column: password | 请求数据：{'username': 'limuyag', 'password': '123456'}
+Traceback (most recent call last):
+  File "C:\Users\18880\Desktop\xm-1\server.py", line 197, in login
+    cursor.execute(
+sqlite3.OperationalError: no such column: password
+2026-03-15 15:33:59 - INFO - server - 数据库初始化完成
+2026-03-15 15:33:59 - INFO - server - AI内容创作工具服务启动 | 地址：http://127.0.0.1:8080
+2026-03-15 15:34:02 - ERROR - server - 登录接口异常：no such column: password | 请求数据：{'username': 'limuyag', 'password': '123456'}
+Traceback (most recent call last):
+  File "C:\Users\18880\Desktop\xm-1\server.py", line 197, in login
+    cursor.execute(
+sqlite3.OperationalError: no such column: password
+2026-03-15 15:34:03 - ERROR - server - 登录接口异常：no such column: password | 请求数据：{'username': 'limuyag', 'password': '123456'}
+Traceback (most recent call last):
+  File "C:\Users\18880\Desktop\xm-1\server.py", line 197, in login
+    cursor.execute(
+sqlite3.OperationalError: no such column: password
+2026-03-15 15:34:03 - ERROR - server - 登录接口异常：no such column: password | 请求数据：{'username': 'limuyag', 'password': '123456'}
+Traceback (most recent call last):
+  File "C:\Users\18880\Desktop\xm-1\server.py", line 197, in login
+    cursor.execute(
+sqlite3.OperationalError: no such column: password
+2026-03-15 15:34:04 - ERROR - server - 登录接口异常：no such column: password | 请求数据：{'username': 'limuyag', 'password': '123456'}
+Traceback (most recent call last):
+  File "C:\Users\18880\Desktop\xm-1\server.py", line 197, in login
+    cursor.execute(
+sqlite3.OperationalError: no such column: password
+2026-03-15 15:34:04 - ERROR - server - 登录接口异常：no such column: password | 请求数据：{'username': 'limuyag', 'password': '123456'}
+Traceback (most recent call last):
+  File "C:\Users\18880\Desktop\xm-1\server.py", line 197, in login
+    cursor.execute(
+sqlite3.OperationalError: no such column: password
+2026-03-15 15:34:20 - ERROR - server - 注册接口异常：table users has no column named password | 请求数据：{'username': 'limuyang2', 'password': '123456', 'phone': ''}
+Traceback (most recent call last):
+  File "C:\Users\18880\Desktop\xm-1\server.py", line 167, in register
+    cursor.execute(
+sqlite3.OperationalError: table users has no column named password
+2026-03-15 15:47:53 - INFO - server - 数据库初始化完成
+2026-03-15 15:47:53 - INFO - server - AI内容创作工具服务启动 | 地址：http://127.0.0.1:8080
+2026-03-15 15:48:13 - ERROR - server - 登录接口异常：no such column: password | 请求数据：{'username': 'limuyang', 'password': '123456'}
+Traceback (most recent call last):
+  File "C:\Users\18880\Desktop\xm-1\server.py", line 190, in login
+    cursor.execute(
+sqlite3.OperationalError: no such column: password
+2026-03-15 15:48:22 - ERROR - server - 登录接口异常：no such column: password | 请求数据：{'username': 'limuyang', 'password': '123456'}
+Traceback (most recent call last):
+  File "C:\Users\18880\Desktop\xm-1\server.py", line 190, in login
+    cursor.execute(
+sqlite3.OperationalError: no such column: password
+2026-03-15 15:53:09 - INFO - server - 数据库初始化完成
+2026-03-15 15:53:09 - INFO - server - AI内容创作工具服务启动 | 地址：http://127.0.0.1:8080
+2026-03-15 15:53:22 - INFO - server - 用户注册成功 | 用户名：limuyang | 手机号：
+2026-03-15 15:53:33 - INFO - server - 用户登录成功 | 用户名：limuyang | 用户ID：1
+2026-03-15 15:53:33 - INFO - server - 获取VIP套餐列表成功
+2026-03-15 15:53:33 - INFO - server - 获取用户信息成功 | 用户ID：1 | VIP类型：0
+2026-03-15 15:54:16 - INFO - server - 获取生成历史成功 | 用户ID：1 | 记录数：0
+2026-03-15 15:54:33 - INFO - server - AI生成成功 | 用户ID：1 | 类型：office | 需求：工作汇报...
+2026-03-15 15:54:33 - INFO - server - 获取用户信息成功 | 用户ID：1 | VIP类型：0
+2026-03-15 15:54:51 - INFO - server - 用户登录成功 | 用户名：limuyang | 用户ID：1
+2026-03-15 15:54:52 - INFO - server - 获取VIP套餐列表成功
+2026-03-15 15:54:52 - INFO - server - 获取用户信息成功 | 用户ID：1 | VIP类型：0
+2026-03-15 15:55:01 - INFO - server - 创建VIP订单成功 | 订单号：VIP117735613017837b138 | 用户ID：1 | 套餐ID：3
+2026-03-15 15:55:03 - INFO - server - 订单支付成功 | 订单号：VIP117735613017837b138 | 用户ID：1
+2026-03-15 15:55:03 - INFO - server - 查询订单状态成功 | 订单号：VIP117735613017837b138 | 状态：0
+2026-03-15 15:55:03 - INFO - server - 获取用户信息成功 | 用户ID：1 | VIP类型：3
+2026-03-15 15:59:52 - INFO - server - 数据库初始化完成
+2026-03-15 15:59:52 - INFO - server - AI内容创作工具服务启动 | 地址：http://127.0.0.1:8080
+2026-03-15 15:59:57 - INFO - server - 获取VIP套餐列表成功
+2026-03-15 15:59:57 - INFO - server - 获取用户信息成功 | 用户ID：1 | VIP类型：3
+2026-03-15 16:00:16 - INFO - server - AI生成成功 | 用户ID：1 | 类型：short_video | 需求：15秒探店脚本...
+2026-03-15 16:00:16 - INFO - server - 获取用户信息成功 | 用户ID：1 | VIP类型：3
+2026-03-15 16:01:05 - INFO - server - AI生成成功 | 用户ID：1 | 类型：short_video | 需求：详细10分钟探店脚本...
+2026-03-15 16:01:05 - INFO - server - 获取用户信息成功 | 用户ID：1 | VIP类型：3
+2026-03-15 16:01:14 - INFO - server - 获取生成历史成功 | 用户ID：1 | 记录数：3
+2026-03-15 16:14:44 - INFO - server - 数据库初始化完成
+2026-03-15 16:14:44 - INFO - server - AI内容创作工具服务启动 | 地址：http://127.0.0.1:8080
+2026-03-15 16:14:44 - INFO - server - GPT-4o配置 | Host：api.chatanywhere.tech | 模型：gpt-4o
+2026-03-15 16:14:56 - INFO - server - 获取VIP套餐列表成功
+2026-03-15 16:14:56 - INFO - server - 获取用户信息成功 | 用户ID：1 | VIP类型：3
+2026-03-15 16:15:19 - INFO - server - 开始调用GPT-4o API | 模型：gpt-4o | Host：api.chatanywhere.tech
+2026-03-15 16:15:25 - INFO - server - GPT-4o API调用成功 | 响应长度：505
+2026-03-15 16:15:25 - INFO - server - AI生成成功 | 用户ID：1 | 类型：short_video | 需求：一分钟探店脚本...
+2026-03-15 16:15:25 - INFO - server - 获取用户信息成功 | 用户ID：1 | VIP类型：3
+2026-03-15 16:16:15 - INFO - server - 开始调用GPT-4o API | 模型：gpt-4o | Host：api.chatanywhere.tech
+2026-03-15 16:16:24 - INFO - server - GPT-4o API调用成功 | 响应长度：718
+2026-03-15 16:16:24 - INFO - server - AI生成成功 | 用户ID：1 | 类型：office | 需求：关于邀请可以购买产品的商务邮件...
+2026-03-15 16:16:24 - INFO - server - 获取用户信息成功 | 用户ID：1 | VIP类型：3
+2026-03-15 16:16:34 - INFO - server - 获取生成历史成功 | 用户ID：1 | 记录数：5
+2026-03-15 16:20:49 - INFO - server - 获取生成历史成功 | 用户ID：1 | 记录数：5
+2026-03-15 16:30:31 - INFO - server - 开始调用GPT-4o API | 模型：gpt-4o | Host：api.chatanywhere.tech
+2026-03-15 16:30:44 - INFO - server - GPT-4o API调用成功 | 响应长度：1565
+2026-03-15 16:30:44 - INFO - server - AI生成成功 | 用户ID：1 | 类型：short_video | 需求：15分钟详细探店脚本（这个店是卖中国老式...
+2026-03-15 16:30:44 - INFO - server - 获取用户信息成功 | 用户ID：1 | VIP类型：3
+2026-03-15 16:35:09 - INFO - server - 获取用户信息成功 | 用户ID：1 | VIP类型：3
+2026-03-15 16:35:20 - INFO - server - 获取用户信息成功 | 用户ID：1 | VIP类型：3
+2026-03-15 16:38:35 - INFO - server - 获取VIP套餐列表成功
+2026-03-15 16:38:35 - INFO - server - 获取用户信息成功 | 用户ID：1 | VIP类型：3
+2026-03-15 16:39:12 - INFO - server - 获取VIP套餐列表成功
+2026-03-15 16:39:12 - INFO - server - 获取用户信息成功 | 用户ID：1 | VIP类型：3
+2026-03-15 16:39:43 - INFO - server - 获取VIP套餐列表成功
+2026-03-15 16:39:43 - INFO - server - 获取用户信息成功 | 用户ID：1 | VIP类型：3
+2026-03-15 16:40:07 - INFO - server - 获取VIP套餐列表成功
+2026-03-15 16:40:07 - INFO - server - 获取用户信息成功 | 用户ID：1 | VIP类型：3
+2026-03-15 16:43:47 - INFO - server - 开始调用GPT-4o API | 模型：gpt-4o | Host：api.chatanywhere.tech
+2026-03-15 16:43:53 - INFO - server - GPT-4o API调用成功 | 响应长度：684
+2026-03-15 16:43:53 - INFO - server - AI生成成功 | 用户ID：1 | 类型：short_video | 需求：60秒短视频搞笑视频...
+2026-03-15 16:43:53 - INFO - server - 获取用户信息成功 | 用户ID：1 | VIP类型：3
