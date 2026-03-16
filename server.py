@@ -588,14 +588,18 @@ def after_request(response):
     response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
     return response
 
-# ========== 7. 启动服务 ==========
+# ========== 7. 启动服务（适配Railway） ==========
 if __name__ == '__main__':
     # 启动前校验API配置
     if API_KEY == "这里填写你的内测API_KEY" or not API_KEY:
         logger.error("请先配置你的内测API_KEY！")
-        print("❌ 错误：请先在代码顶部填写你的内测API_KEY，再启动服务")
+        print("❌ 错误：请先配置你的内测API_KEY，再启动服务")
         exit(1)
     init_db()
-    logger.info(f"AI内容创作工具服务启动 | 地址：http://127.0.0.1:8080")
+    logger.info(f"AI内容创作工具服务启动")
     logger.info(f"GPT-4o配置 | Host：{API_HOST} | 模型：{MODEL_NAME}")
-    app.run(host='0.0.0.0', port=8080, debug=False)
+    
+    # 关键修改：用Railway的PORT环境变量，默认8080
+    port = int(os.environ.get('PORT', 8080))
+    # 生产环境用0.0.0.0监听所有网卡
+    app.run(host='0.0.0.0', port=port, debug=False)
