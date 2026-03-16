@@ -1,182 +1,168 @@
+# 导入必要的库
 from flask import Flask, request, jsonify
-from flask_cors import CORS  # 统一用flask-cors处理跨域，更简洁
-import time
-import random
-import string
-import os  # 新增：读取Railway的环境变量
+import pymysql
+import hashlib
 
+# 初始化 Flask 应用
 app = Flask(__name__)
-# 替换手动跨域头，用flask-cors一键配置（更稳定）
-CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-@app.route('/')
-
-
-# 模拟数据库（原有逻辑不变）
-users = {}
-vip_packages = {
-    1: {"name": "月会员", "price": 19.9, "duration": 30 * 24 * 3600},
-    2: {"name": "季会员", "price": 49.9, "duration": 90 * 24 * 3600},
-    3: {"name": "年会员", "price": 159.9, "duration": 365 * 24 * 3600}
+# 数据库配置（请替换成你 Railway 的数据库信息）
+DB_CONFIG = {
+    'host': '你的数据库主机地址',
+    'user': '你的数据库用户名',
+    'password': '你的数据库密码',
+    'database': '你的数据库名',
+    'port': 3306,
+    'charset': 'utf8mb4'
 }
-orders = {}
-history = []
 
-def generate_id(prefix="user"):
-    return f"{prefix}_{int(time.time())}_{random.randint(1000, 9999)}"
-
-def generate_order_no():
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=16))
-
-# 登录（原有逻辑不变）
-@app.route('/api/login', methods=['POST'])
-def api_login():
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
-
-    for uid, info in users.items():
-        if info['username'] == username and info['password'] == password:
-            return jsonify({
-                "code": 0,
-                "msg": "登录成功",
-                "data": {
-                    "user_id": uid,
-                    "username": username,
-                    "vip_type": info['vip_type'],
-                    "vip_expire_time": info['vip_expire_time']
-                }
-            })
-    return jsonify({"code": 1, "msg": "用户名或密码错误"})
-
-# 注册（原有逻辑不变）
-@app.route('/api/register', methods=['POST'])
-def api_register():
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
-    phone = data.get('phone', '')
-
-    for uid, info in users.items():
-        if info['username'] == username:
-            return jsonify({"code": 1, "msg": "用户名已存在"})
-
-    user_id = generate_id()
-    users[user_id] = {
-        "username": username,
-        "password": password,
-        "phone": phone,
-        "vip_type": 0,
-        "vip_expire_time": 0,
-        "free_count": 3,
-        "create_time": int(time.time())
-    }
-    return jsonify({"code": 0, "msg": "注册成功"})
-
-# 获取用户信息（原有逻辑不变）
-@app.route('/api/get_user_info', methods=['POST'])
-def api_get_user_info():
-    data = request.get_json()
-    user_id = data.get('user_id')
-    user = users.get(user_id)
-    if not user:
-        return jsonify({"code": 404, "msg": "用户不存在"})
-
+# -------------------------- 核心接口 --------------------------
+# 1. 根路由（解决 404 关键！）
+@app.route('/')
+def index():
     return jsonify({
-        "code": 0,
-        "data": {
-            "free_count": user['free_count'],
-            "vip_type": user['vip_type'],
-            "vip_expire_time": user['vip_expire_time']
+        "status": "success",
+        "message": "服务运行正常✅",
+        "available_endpoints": {
+            "GET /": "检查服务状态",
+            "GET /api/get_vip_packages": "获取VIP套餐列表",
+            "POST /api/login": "用户登录",
+            "POST /api/register": "用户注册"
         }
     })
 
-# AI 生成（原有逻辑不变）
-@app.route('/api/ai_create', methods=['POST'])
-def api_ai_create():
-    data = request.get_json()
-    user_id = data.get('user_id')
-    prompt = data.get('prompt')
-    req_type = data.get('req_type')
-
-    user = users.get(user_id)
-    if not user:
-        return jsonify({"code": 404, "msg": "用户不存在"})
-
-    if user['vip_type'] == 0:
-        if user['free_count'] <= 0:
-            return jsonify({"code": 403, "msg": "免费次数已用完，请开通VIP"})
-        user['free_count'] -= 1
-
-    fake_content = f"【AI 生成结果】\n需求：{prompt}\n\n这是一段自动生成的演示内容，替换成你自己的模型接口即可。"
-
-    history.append({
-        "user_id": user_id,
-        "type": req_type,
-        "prompt": prompt,
-        "content": fake_content,
-        "time": time.strftime("%Y-%m-%d %H:%M:%S")
-    })
-
-    return jsonify({"code": 0, "data": {"content": fake_content}})
-
-# 获取VIP套餐（原有逻辑不变）
+# 2. 获取VIP套餐接口
 @app.route('/api/get_vip_packages', methods=['GET'])
-def api_get_vip_packages():
-    return jsonify({"code": 0, "data": vip_packages})
+def get_vip_packages():
+    try:
+        # 连接数据库
+        conn = pymysql.connect(**DB_CONFIG)
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        
+        # 查询套餐数据
+        cursor.execute("SELECT id, name, price, duration, description FROM vip_packages WHERE is_active = 1")
+        packages = cursor.fetchall()
+        
+        # 关闭连接
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            "status": "success",
+            "data": packages
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": f"获取套餐失败：{str(e)}"
+        }), 500
 
-# 创建订单（原有逻辑不变）
-@app.route('/api/create_vip_order', methods=['POST'])
-def api_create_vip_order():
-    data = request.get_json()
-    user_id = data.get('user_id')
-    package_id = int(data.get('package_id'))
+# 3. 用户登录接口
+@app.route('/api/login', methods=['POST'])
+def login():
+    try:
+        # 获取请求参数
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+        
+        if not username or not password:
+            return jsonify({
+                "status": "error",
+                "message": "用户名和密码不能为空"
+            }), 400
+        
+        # 密码加密（和注册时保持一致）
+        encrypted_pwd = hashlib.md5(password.encode()).hexdigest()
+        
+        # 连接数据库验证
+        conn = pymysql.connect(**DB_CONFIG)
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        
+        cursor.execute("SELECT id, username, is_vip FROM users WHERE username = %s AND password = %s", 
+                      (username, encrypted_pwd))
+        user = cursor.fetchone()
+        
+        cursor.close()
+        conn.close()
+        
+        if user:
+            return jsonify({
+                "status": "success",
+                "message": "登录成功",
+                "data": user
+            })
+        else:
+            return jsonify({
+                "status": "error",
+                "message": "用户名或密码错误"
+            }), 401
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": f"登录失败：{str(e)}"
+        }), 500
 
-    if package_id not in vip_packages:
-        return jsonify({"code": 1, "msg": "套餐不存在"})
+# 4. 用户注册接口
+@app.route('/api/register', methods=['POST'])
+def register():
+    try:
+        # 获取请求参数
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+        email = data.get('email')
+        
+        if not username or not password or not email:
+            return jsonify({
+                "status": "error",
+                "message": "用户名、密码、邮箱不能为空"
+            }), 400
+        
+        # 密码加密
+        encrypted_pwd = hashlib.md5(password.encode()).hexdigest()
+        
+        # 连接数据库
+        conn = pymysql.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        
+        # 检查用户名是否已存在
+        cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
+        if cursor.fetchone():
+            cursor.close()
+            conn.close()
+            return jsonify({
+                "status": "error",
+                "message": "用户名已存在"
+            }), 409
+        
+        # 插入新用户
+        cursor.execute(
+            "INSERT INTO users (username, password, email, is_vip, create_time) VALUES (%s, %s, %s, 0, NOW())",
+            (username, encrypted_pwd, email)
+        )
+        conn.commit()
+        
+        # 获取新用户ID
+        user_id = cursor.lastrowid
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            "status": "success",
+            "message": "注册成功",
+            "data": {"user_id": user_id, "username": username}
+        }), 201
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": f"注册失败：{str(e)}"
+        }), 500
 
-    order_no = generate_order_no()
-    orders[order_no] = {
-        "user_id": user_id,
-        "package_id": package_id,
-        "status": 0,
-        "create_time": int(time.time()),
-        "pay_time": 0
-    }
-    return jsonify({"code": 0, "data": {"order_no": order_no}})
-
-# 查询订单状态（原有逻辑不变）
-@app.route('/api/query_order_status', methods=['POST'])
-def api_query_order_status():
-    data = request.get_json()
-    order_no = data.get('order_no')
-    order = orders.get(order_no)
-
-    if not order:
-        return jsonify({"code": 1, "msg": "订单不存在"})
-
-    user = users.get(order['user_id'])
-    pkg = vip_packages[order['package_id']]
-    now = int(time.time())
-
-    user['vip_type'] = 1
-    user['vip_expire_time'] = now + pkg['duration']
-    order['status'] = 1
-    order['pay_time'] = now
-
-    return jsonify({"code": 0, "data": {"status": 1}})
-
-# 获取历史记录（原有逻辑不变）
-@app.route('/api/get_history', methods=['POST'])
-def api_get_history():
-    data = request.get_json()
-    user_id = data.get('user_id')
-    user_history = [h for h in history if h['user_id'] == user_id]
-    return jsonify({"code": 0, "data": user_history})
-
-# 关键修复：适配Railway的端口和启动模式
+# -------------------------- 启动配置 --------------------------
+# 适配 Railway 部署（必须用 0.0.0.0 和环境变量端口）
 if __name__ == '__main__':
-    # 读取Railway动态分配的PORT环境变量（默认8080，兼容本地测试）
-    port = int(os.environ.get('PORT', 8080))
-    # 监听0.0.0.0 + 动态端口，关闭debug模式（生产环境必需）
-    app.run(host='0.0.0.0', port=port, debug=False)
+    import os
+    port = int(os.environ.get('PORT', 8000))
+    app.run(host='0.0.0.0', port=port, debug=False)  # 生产环境关闭 debug
