@@ -57,6 +57,9 @@ logger = setup_logger()
 # 基础配置
 app = Flask(__name__)
 
+# 挂载静态文件（让 / 访问 index.html）
+app.mount("/", StaticFiles(directory=".", html=True), name="static")
+
 # 自动管理SECRET_KEY，重启不失效
 SECRET_KEY_FILE = '.secret_key'
 if os.path.exists(SECRET_KEY_FILE):
