@@ -505,7 +505,8 @@
         }
 
         // 全局变量
-        const SERVER_URL = "http://127.0.0.1:8080";
+        // 自动获取当前页面的域名作为基础地址
+        const SERVER_URL = window.location.origin;
         let userInfo = null;
         let isVip = false;
         let selectedTheme = "theme-lightblue";
