@@ -76,41 +76,31 @@ else:
 
 DATABASE = 'ai_creator.db'
 
-# ========== 3. 数据库操作（同时兼容SQLite本地开发 + PostgreSQL Railway生产） ==========
+# ========== 3. 数据库操作（Railway PostgreSQL专用版） ==========
 def get_db():
-    """获取数据库连接，自动识别环境"""
+    """获取PostgreSQL数据库连接（Railway专用）"""
     db = getattr(g, '_database', None)
     if db is None:
-        # 优先检查Railway的PostgreSQL环境变量
-        database_url = os.environ.get('DATABASE_URL')
-        if database_url:
-            # ---------------- Railway生产环境：PostgreSQL ----------------
-            try:
-                import psycopg2
-                from psycopg2.extras import RealDictCursor
-                # 连接PostgreSQL，使用RealDictCursor让返回结果可以像字典一样访问
-                db = g._database = psycopg2.connect(
-                    database_url,
-                    cursor_factory=RealDictCursor,
-                    connect_timeout=10
-                )
-                logger.info("已连接到Railway PostgreSQL数据库")
-            except ImportError:
-                logger.error("缺少psycopg2-binary库，请在requirements.txt中添加")
-                raise
-            except Exception as e:
-                logger.error(f"PostgreSQL连接失败：{str(e)}", exc_info=True)
-                raise
-        else:
-            # ---------------- 本地开发环境：SQLite ----------------
-            try:
-                db = g._database = sqlite3.connect(DATABASE)
-                # SQLite也设置成字典模式，和PostgreSQL保持一致
-                db.row_factory = sqlite3.Row
-                logger.info(f"已连接到本地SQLite数据库：{DATABASE}")
-            except Exception as e:
-                logger.error(f"SQLite连接失败：{str(e)}", exc_info=True)
-                raise
+        try:
+            import psycopg2
+            from psycopg2.extras import RealDictCursor
+            
+            # 读取Railway自动生成的DATABASE_URL
+            database_url = os.environ.get('DATABASE_URL')
+            if not database_url:
+                raise Exception("未找到DATABASE_URL环境变量，请先添加PostgreSQL数据库")
+            
+            # 连接PostgreSQL
+            db = g._database = psycopg2.connect(
+                database_url,
+                cursor_factory=RealDictCursor,
+                connect_timeout=10
+            )
+            logger.info("✅ 成功连接到Railway PostgreSQL数据库")
+        except ImportError:
+            raise Exception("❌ 缺少psycopg2-binary库，请在requirements.txt中添加")
+        except Exception as e:
+            raise Exception(f"❌ PostgreSQL连接失败：{str(e)}")
     return db
 
 @app.teardown_appcontext
@@ -119,20 +109,18 @@ def close_connection(exception):
     db = getattr(g, '_database', None)
     if db is not None:
         db.close()
-        logger.debug("数据库连接已关闭")
+        logger.debug("🔌 数据库连接已关闭")
 
 def init_db():
-    """初始化数据库表（兼容SQLite和PostgreSQL语法）"""
+    """初始化PostgreSQL数据库表（自动创建所有需要的表）"""
     with app.app_context():
         db = get_db()
         cursor = db.cursor()
         
-        # ---------------- 1. 用户表 ----------------
-        # 兼容写法：SQLite用AUTOINCREMENT，PostgreSQL用SERIAL
-        # 用EXECUTE(EPOCH FROM NOW())兼容时间戳获取
+        # 1. 用户表（核心表）
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
-            user_id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+            user_id SERIAL PRIMARY KEY,
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             phone TEXT,
@@ -143,7 +131,7 @@ def init_db():
         )
         ''')
         
-        # ---------------- 2. VIP套餐表 ----------------
+        # 2. VIP套餐表
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS vip_packages (
             package_id INTEGER PRIMARY KEY,
@@ -153,10 +141,10 @@ def init_db():
         )
         ''')
         
-        # ---------------- 3. 订单表 ----------------
+        # 3. 订单表
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS orders (
-            order_id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+            order_id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL,
             package_id INTEGER NOT NULL,
             order_no TEXT UNIQUE NOT NULL,
@@ -166,10 +154,10 @@ def init_db():
         )
         ''')
         
-        # ---------------- 4. 生成记录表 ----------------
+        # 4. 生成记录表
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS create_records (
-            record_id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+            record_id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL,
             req_type TEXT NOT NULL,
             prompt TEXT NOT NULL,
@@ -178,30 +166,23 @@ def init_db():
         )
         ''')
         
-        # ---------------- 初始化VIP套餐数据 ----------------
-        # 先检查是否已有数据，避免重复插入
+        # 初始化VIP套餐数据（只执行一次）
         cursor.execute('SELECT COUNT(*) FROM vip_packages')
-        # 兼容写法：SQLite用fetchone()[0]，PostgreSQL用fetchone()['count']
-        count_result = cursor.fetchone()
-        count = count_result[0] if isinstance(count_result, (tuple, list)) else count_result['count']
-        
+        count = cursor.fetchone()['count']
         if count == 0:
-            # 兼容的插入写法
             packages = [
                 (1, '月会员', 19.9, 30*24*3600),
                 (2, '季会员', 49.9, 90*24*3600),
                 (3, '年会员', 199.0, 365*24*3600)
             ]
-            # PostgreSQL用%s占位符，SQLite用?，这里用executemany兼容
-            for pkg in packages:
-                cursor.execute(
-                    'INSERT INTO vip_packages (package_id, name, price, duration) VALUES (%s, %s, %s, %s)',
-                    pkg
-                )
+            cursor.executemany(
+                'INSERT INTO vip_packages (package_id, name, price, duration) VALUES (%s, %s, %s, %s)',
+                packages
+            )
+            logger.info("📦 初始化VIP套餐数据完成")
         
-        # 提交事务（PostgreSQL必须显式提交，SQLite可选）
         db.commit()
-        logger.info("数据库表初始化完成（兼容SQLite/PostgreSQL）")
+        logger.info("✅ PostgreSQL数据库表初始化完成")
 # ========== 4. 工具函数 ==========
 def generate_order_no(user_id):
     """生成唯一订单号"""
