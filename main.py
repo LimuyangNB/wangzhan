@@ -1,19 +1,15 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS
+from flask_cors import CORS  # 统一用flask-cors处理跨域，更简洁
 import time
 import random
 import string
+import os  # 新增：读取Railway的环境变量
 
 app = Flask(__name__)
-# 替换 CORS(app)：用原生方式处理跨域
-@app.after_request
-def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-    return response
+# 替换手动跨域头，用flask-cors一键配置（更稳定）
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-# 模拟数据库
+# 模拟数据库（原有逻辑不变）
 users = {}
 vip_packages = {
     1: {"name": "月会员", "price": 19.9, "duration": 30 * 24 * 3600},
@@ -29,7 +25,7 @@ def generate_id(prefix="user"):
 def generate_order_no():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=16))
 
-# 登录
+# 登录（原有逻辑不变）
 @app.route('/api/login', methods=['POST'])
 def api_login():
     data = request.get_json()
@@ -50,7 +46,7 @@ def api_login():
             })
     return jsonify({"code": 1, "msg": "用户名或密码错误"})
 
-# 注册
+# 注册（原有逻辑不变）
 @app.route('/api/register', methods=['POST'])
 def api_register():
     data = request.get_json()
@@ -74,7 +70,7 @@ def api_register():
     }
     return jsonify({"code": 0, "msg": "注册成功"})
 
-# 获取用户信息
+# 获取用户信息（原有逻辑不变）
 @app.route('/api/get_user_info', methods=['POST'])
 def api_get_user_info():
     data = request.get_json()
@@ -92,7 +88,7 @@ def api_get_user_info():
         }
     })
 
-# AI 生成
+# AI 生成（原有逻辑不变）
 @app.route('/api/ai_create', methods=['POST'])
 def api_ai_create():
     data = request.get_json()
@@ -121,12 +117,12 @@ def api_ai_create():
 
     return jsonify({"code": 0, "data": {"content": fake_content}})
 
-# 获取VIP套餐
+# 获取VIP套餐（原有逻辑不变）
 @app.route('/api/get_vip_packages', methods=['GET'])
 def api_get_vip_packages():
     return jsonify({"code": 0, "data": vip_packages})
 
-# 创建订单
+# 创建订单（原有逻辑不变）
 @app.route('/api/create_vip_order', methods=['POST'])
 def api_create_vip_order():
     data = request.get_json()
@@ -146,7 +142,7 @@ def api_create_vip_order():
     }
     return jsonify({"code": 0, "data": {"order_no": order_no}})
 
-# 查询订单状态（模拟支付成功）
+# 查询订单状态（原有逻辑不变）
 @app.route('/api/query_order_status', methods=['POST'])
 def api_query_order_status():
     data = request.get_json()
@@ -167,7 +163,7 @@ def api_query_order_status():
 
     return jsonify({"code": 0, "data": {"status": 1}})
 
-# 获取历史记录
+# 获取历史记录（原有逻辑不变）
 @app.route('/api/get_history', methods=['POST'])
 def api_get_history():
     data = request.get_json()
@@ -175,5 +171,9 @@ def api_get_history():
     user_history = [h for h in history if h['user_id'] == user_id]
     return jsonify({"code": 0, "data": user_history})
 
+# 关键修复：适配Railway的端口和启动模式
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # 读取Railway动态分配的PORT环境变量（默认8080，兼容本地测试）
+    port = int(os.environ.get('PORT', 8080))
+    # 监听0.0.0.0 + 动态端口，关闭debug模式（生产环境必需）
+    app.run(host='0.0.0.0', port=port, debug=False)
