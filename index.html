@@ -123,90 +123,15 @@
         .theme-lightcyan-item {background: #06b6d4;}
         .theme-confirm-btn {width: 100%; background: var(--primary); color: var(--text-white); border: none; padding: 12px 0; border-radius: 8px; font-size: 16px; cursor: pointer;}
 
-        .log-export-btn {
-            position: fixed;
-            bottom: 80px;
-            right: 15px;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--primary);
-            color: var(--text-white);
-            border: none;
-            font-size: 18px;
-            cursor: pointer;
-            z-index: 80;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-        .log-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1002;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .log-modal-content {
-            width: 90%;
-            max-width: 400px;
-            background: var(--bg-card);
-            border-radius: 12px;
-            padding: 20px;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        .log-modal-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: var(--text-main);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .log-close-btn {
-            background: none;
-            border: none;
-            color: var(--text-gray);
-            font-size: 20px;
-            cursor: pointer;
-        }
-        .log-content {
-            font-size: 12px;
-            color: var(--text-secondary);
-            line-height: 1.5;
-            white-space: pre-wrap;
-            max-height: 60vh;
-            overflow-y: auto;
-            padding: 10px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            margin-bottom: 15px;
-        }
-        .log-export-action {
-            display: flex;
-            gap: 10px;
-        }
-        .log-export-action button {
-            flex: 1;
-            padding: 10px 0;
-            border-radius: 6px;
-            border: none;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        .log-clear-btn {
-            background: #ef4444;
-            color: white;
-        }
-        .log-save-btn {
-            background: var(--primary);
-            color: white;
-        }
+        .log-modal {position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1002; display: flex; align-items: center; justify-content: center;}
+        .log-modal-content {width: 90%; max-width: 400px; background: var(--bg-card); border-radius: 12px; padding: 20px; max-height: 80vh; overflow-y: auto;}
+        .log-modal-title {font-size: 18px; font-weight: 600; margin-bottom: 15px; color: var(--text-main); display: flex; justify-content: space-between; align-items: center;}
+        .log-close-btn {background: none; border: none; color: var(--text-gray); font-size: 20px; cursor: pointer;}
+        .log-content {font-size: 12px; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap; max-height: 60vh; overflow-y: auto; padding: 10px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 15px;}
+        .log-export-action {display: flex; gap: 10px;}
+        .log-export-action button {flex: 1; padding: 10px 0; border-radius: 6px; border: none; font-size: 14px; cursor: pointer;}
+        .log-clear-btn {background: #ef4444; color: white;}
+        .log-save-btn {background: var(--primary); color: white;}
     </style>
 </head>
 <body id="appBody" class="theme-lightblue">
@@ -311,7 +236,7 @@
     </div>
 
     <div class="vip-modal hide" id="vipModal">
-        <div class="vip-modal-content">
+        <div class="vip-modal-content modal-inner"> <!-- 修复：添加modal-inner类 -->
             <div class="vip-modal-title">开通VIP会员</div>
             <div class="vip-package-list" id="vipPackageList">
             </div>
@@ -322,7 +247,7 @@
     </div>
 
     <div class="auth-modal hide" id="authModal">
-        <div class="auth-modal-content">
+        <div class="auth-modal-content modal-inner"> <!-- 修复：添加modal-inner类 -->
             <div class="auth-tabs">
                 <div class="auth-tab active" data-tab="login">登录</div>
                 <div class="auth-tab" data-tab="register">注册</div>
@@ -359,7 +284,7 @@
     </div>
 
     <div class="theme-modal hide" id="themeModal">
-        <div class="theme-modal-content">
+        <div class="theme-modal-content modal-inner"> <!-- 修复：添加modal-inner类 -->
             <div class="theme-modal-title">自定义主题色</div>
             <div class="theme-custom">
                 <label for="colorPicker">手动选择：</label>
@@ -380,7 +305,7 @@
     </div>
 
     <div class="log-modal hide" id="logModal">
-        <div class="log-modal-content">
+        <div class="log-modal-content modal-inner"> <!-- 修复：添加modal-inner类 -->
             <div class="log-modal-title">
                 <span>客户端日志</span>
                 <button class="log-close-btn" id="logCloseBtn">×</button>
@@ -417,7 +342,7 @@
             saveLogs() {
                 try {
                     if (this.logs.length > this.MAX_LOG_COUNT) {
-                        this.logs = this.logs.slice(-this.MAX_LOG_COUNT);
+                        this.logs = this.logs.slice(-this.MAX_LOG_COUNT); // 修复：切片后保留最新1000条
                     }
                     localStorage.setItem(this.LOG_STORAGE_KEY, JSON.stringify(this.logs));
                 } catch (e) {
@@ -426,15 +351,10 @@
             }
 
             getTimestamp() {
+                // 修复：手动格式化时间戳，兼容所有浏览器
                 const now = new Date();
-                return now.toLocaleString('zh-CN', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                });
+                const pad = n => n.toString().padStart(2, '0');
+                return `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
             }
 
             log(level, module, message, data = null) {
@@ -477,7 +397,7 @@
             getFormattedLogs() {
                 return this.logs.map(item => {
                     let dataStr = item.data ? JSON.stringify(item.data, null, 2) : '';
-                    return `[${item.time}] [${item.level}] [${item.module}] ${item.message} ${dataStr}`;
+                    return `[${item.time}] [${item.level}] [${module}] ${item.message} ${dataStr}`;
                 }).join('\n');
             }
 
@@ -505,13 +425,12 @@
         }
 
         // 全局变量
-        // 自动获取当前页面的域名作为基础地址
-        const SERVER_URL = window.location.origin;
         let userInfo = null;
         let isVip = false;
         let selectedTheme = "theme-lightblue";
         let customPrimaryColor = "#4299e1";
         let selectedPackageId = 1;
+        let recognition = null; // 修复：全局语音识别实例，避免重复创建
         const logger = new ClientLogger();
 
         // 页面加载
@@ -586,6 +505,10 @@
                 if (savedUser) {
                     try {
                         userInfo = JSON.parse(savedUser);
+                        // 修复：校验用户信息完整性
+                        if (!userInfo.user_id || !userInfo.username) {
+                            throw new Error("用户信息不完整");
+                        }
                         if (authModal) authModal.classList.add("hide");
                         showMainUI();
                         getUserInfo();
@@ -773,12 +696,19 @@
                             return;
                         }
                         
-                        fetch(`${SERVER_URL}/api/login`, {
+                        // 修复：使用相对路径，添加响应状态校验
+                        fetch('/api/login', {
                             method: "POST",
                             headers: {"Content-Type": "application/json"},
                             body: JSON.stringify({username, password})
-                        }).then(res => res.json()).then(data => {
-                            if (data.code === 200) {
+                        })
+                        .then(res => {
+                            if (!res.ok) throw new Error(`服务器错误：${res.status}`);
+                            return res.json();
+                        })
+                        .then(data => {
+                            // 修复：判断code=0（后端通用成功码）
+                            if (data.code === 0) {
                                 userInfo = {
                                     user_id: data.data.user_id,
                                     username: data.data.username,
@@ -792,8 +722,9 @@
                                 if (loginStatus) loginStatus.innerText = data.msg;
                                 logger.warn('登录', '登录失败', { username, msg: data.msg });
                             }
-                        }).catch(err => {
-                            if (loginStatus) loginStatus.innerText = "网络错误，请重试";
+                        })
+                        .catch(err => {
+                            if (loginStatus) loginStatus.innerText = "服务器内部错误，请重试";
                             logger.error('登录', '登录请求异常', err);
                         });
                     } catch (e) {
@@ -820,12 +751,19 @@
                             return;
                         }
                         
-                        fetch(`${SERVER_URL}/api/register`, {
+                        // 修复：使用相对路径，添加响应状态校验
+                        fetch('/api/register', {
                             method: "POST",
                             headers: {"Content-Type": "application/json"},
                             body: JSON.stringify({username, password, phone})
-                        }).then(res => res.json()).then(data => {
-                            if (data.code === 200) {
+                        })
+                        .then(res => {
+                            if (!res.ok) throw new Error(`服务器错误：${res.status}`);
+                            return res.json();
+                        })
+                        .then(data => {
+                            // 修复：判断code=0
+                            if (data.code === 0) {
                                 if (registerStatus) registerStatus.innerText = "注册成功，请登录";
                                 document.querySelectorAll(".auth-tab")[0]?.click();
                                 logger.info('注册', '注册成功', { username, phone });
@@ -833,8 +771,9 @@
                                 if (registerStatus) registerStatus.innerText = data.msg;
                                 logger.warn('注册', '注册失败', { username, msg: data.msg });
                             }
-                        }).catch(err => {
-                            if (registerStatus) registerStatus.innerText = "网络错误，请重试";
+                        })
+                        .catch(err => {
+                            if (registerStatus) registerStatus.innerText = "服务器内部错误，请重试";
                             logger.error('注册', '注册请求异常', err);
                         });
                     } catch (e) {
@@ -949,12 +888,19 @@
 
         // AI生成请求
         function aiCreateRequest(params, resultId) {
-            fetch(`${SERVER_URL}/api/ai_create`, {
+            // 修复：使用相对路径，添加响应状态校验
+            fetch('/api/ai_create', {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(params)
-            }).then(res => res.json()).then(data => {
-                if (data.code === 200) {
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(`服务器错误：${res.status}`);
+                return res.json();
+            })
+            .then(data => {
+                // 修复：判断code=0
+                if (data.code === 0) {
                     const result = document.getElementById(resultId);
                     if (result) result.innerText = data.data.content;
                     getUserInfo();
@@ -968,9 +914,10 @@
                     alert(data.msg);
                     logger.warn('AI生成', '生成失败', { msg: data.msg });
                 }
-            }).catch(err => {
+            })
+            .catch(err => {
                 logger.error('AI生成', '生成请求异常', err);
-                alert('生成失败：网络错误，请重试');
+                alert('生成失败：服务器内部错误，请重试');
             });
         }
 
@@ -981,7 +928,8 @@
                 alert("你的浏览器不支持语音输入，请更换手机浏览器！");
                 return;
             }
-            const recognition = new SpeechRecognition();
+            // 修复：全局唯一实例，避免重复创建
+            recognition = recognition || new SpeechRecognition();
             recognition.lang = "zh-CN";
             recognition.interimResults = false;
 
@@ -1078,11 +1026,18 @@
 
         // 获取VIP套餐
         function getVipPackages() {
-            fetch(`${SERVER_URL}/api/get_vip_packages`, {
+            // 修复：使用相对路径，添加响应状态校验
+            fetch('/api/get_vip_packages', {
                 method: "GET",
                 headers: {"Content-Type": "application/json"}
-            }).then(res => res.json()).then(data => {
-                if (data.code === 200) {
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(`服务器错误：${res.status}`);
+                return res.json();
+            })
+            .then(data => {
+                // 修复：判断code=0
+                if (data.code === 0) {
                     const packageList = document.getElementById("vipPackageList");
                     if (!packageList) return;
                     
@@ -1108,7 +1063,8 @@
                     
                     logger.info('VIP套餐', '获取套餐列表成功', { count: Object.keys(data.data).length });
                 }
-            }).catch(err => {
+            })
+            .catch(err => {
                 logger.error('VIP套餐', '获取套餐失败', err);
             });
         }
@@ -1142,22 +1098,35 @@
                         package_id: selectedPackageId
                     };
                     
-                    fetch(`${SERVER_URL}/api/create_vip_order`, {
+                    // 修复：使用相对路径，添加响应状态校验
+                    fetch('/api/create_vip_order', {
                         method: "POST",
                         headers: {"Content-Type": "application/json"},
                         body: JSON.stringify(params)
-                    }).then(res => res.json()).then(data => {
-                        if (data.code === 200) {
+                    })
+                    .then(res => {
+                        if (!res.ok) throw new Error(`服务器错误：${res.status}`);
+                        return res.json();
+                    })
+                    .then(data => {
+                        // 修复：判断code=0
+                        if (data.code === 0) {
                             // 模拟支付
                             if (payStatus) payStatus.innerText = "订单创建成功，正在模拟支付...";
                             
                             setTimeout(() => {
-                                fetch(`${SERVER_URL}/api/query_order_status`, {
+                                fetch('/api/query_order_status', {
                                     method: "POST",
                                     headers: {"Content-Type": "application/json"},
                                     body: JSON.stringify({order_no: data.data.order_no})
-                                }).then(res => res.json()).then(payData => {
-                                    if (payData.code === 200) {
+                                })
+                                .then(res => {
+                                    if (!res.ok) throw new Error(`服务器错误：${res.status}`);
+                                    return res.json();
+                                })
+                                .then(payData => {
+                                    // 修复：判断code=0
+                                    if (payData.code === 0) {
                                         if (payStatus) payStatus.innerText = "支付成功！正在刷新VIP状态...";
                                         getUserInfo();
                                         setTimeout(() => {
@@ -1166,14 +1135,19 @@
                                             alert("VIP开通成功！");
                                         }, 1000);
                                     }
+                                })
+                                .catch(err => {
+                                    logger.error('VIP支付', '查询订单状态失败', err);
+                                    if (payStatus) payStatus.innerText = "查询订单失败，请重试！";
                                 });
                             }, 1500);
                         } else {
                             if (payStatus) payStatus.innerText = "创建订单失败：" + data.msg;
                         }
-                    }).catch(err => {
+                    })
+                    .catch(err => {
                         logger.error('VIP支付', '创建订单失败', err);
-                        if (payStatus) payStatus.innerText = "网络错误，请重试！";
+                        if (payStatus) payStatus.innerText = "服务器内部错误，请重试！";
                     });
                 };
             }
@@ -1205,7 +1179,8 @@
             const modals = document.querySelectorAll(".vip-modal, .auth-modal, .theme-modal, .log-modal");
             modals.forEach(modal => {
                 modal.onclick = function(e) {
-                    if (e.target === this) {
+                    // 修复：只点击背景（非内容区）才关闭
+                    if (!e.target.closest('.modal-inner')) {
                         this.classList.add("hide");
                         logger.info('模态框', '点击背景关闭弹窗', { modal: this.id });
                     }
@@ -1320,12 +1295,19 @@
 
         // 获取用户信息
         function getUserInfo() {
-            fetch(`${SERVER_URL}/api/get_user_info`, {
+            // 修复：使用相对路径，添加响应状态校验
+            fetch('/api/get_user_info', {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({user_id: userInfo.user_id})
-            }).then(res => res.json()).then(data => {
-                if (data.code === 200) {
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(`服务器错误：${res.status}`);
+                return res.json();
+            })
+            .then(data => {
+                // 修复：判断code=0
+                if (data.code === 0) {
                     const userData = data.data;
                     isVip = userData.vip_type > 0;
                     
@@ -1360,22 +1342,30 @@
                     autoLogin();
                     logger.error('用户信息', '用户信息失效', { user_id: userInfo.user_id });
                 }
-            }).catch(err => {
+            })
+            .catch(err => {
                 logger.error('用户信息', '获取用户信息异常', err);
             });
         }
 
         // 获取历史记录
         function getHistory() {
-            fetch(`${SERVER_URL}/api/get_history`, {
+            // 修复：使用相对路径，添加响应状态校验
+            fetch('/api/get_history', {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({user_id: userInfo.user_id})
-            }).then(res => res.json()).then(data => {
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(`服务器错误：${res.status}`);
+                return res.json();
+            })
+            .then(data => {
                 const historyList = document.getElementById("historyList");
                 if (!historyList) return;
                 
-                if (data.code === 200 && data.data.length > 0) {
+                // 修复：判断code=0
+                if (data.code === 0 && data.data.length > 0) {
                     let html = "";
                     data.data.forEach(item => {
                         html += `
@@ -1392,21 +1382,17 @@
                     historyList.innerHTML = '<div style="text-align:center; color:var(--text-gray); padding:20px 0;">暂无生成记录，快去创作吧~</div>';
                     logger.info('历史记录', '无历史记录', { user_id: userInfo.user_id });
                 }
-            }).catch(err => {
+            })
+            .catch(err => {
                 logger.error('历史记录', '获取历史记录异常', err);
                 historyList.innerHTML = '<div style="text-align:center; color:var(--text-gray); padding:20px 0;">加载失败，请重试~</div>';
             });
         }
     </script>
 
-
-<div class="form-item">
-    
-    <label>关于：<br>--制作：Li Muyang（李沐阳）<br>邮箱limuyang3u8633@outlook.com <br>--或 3868612604@qq.com<br>----欢迎联系与反馈</label>
-
-</div>
-
-
+    <div class="form-item">
+        <label>关于：<br>--制作：Li Muyang（李沐阳）<br>邮箱limuyang3u8633@outlook.com <br>--或 3868612604@qq.com<br>----欢迎联系与反馈</label>
+    </div>
 
 </body>
 </html>
