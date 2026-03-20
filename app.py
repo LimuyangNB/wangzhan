@@ -1,86 +1,30 @@
-from flask import (
-    Flask, render_template, g,
-    request, session, redirect, url_for,
-    jsonify  # 关键修复：导入jsonify
-)
-import sqlite3
-import logging
-from datetime import datetime
-import os
-
-# 初始化日志
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'ai-creator-2026')  # 兼容环境变量
-app.config['DATABASE'] = 'app.db'
-
-# --------------------------
-# 跨域配置（关键！前端能正常调用）
-# --------------------------
-@app.after_request
-def add_cors_headers(response):
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-    return response
-
-# --------------------------
-# 数据库操作
-# --------------------------
-def get_db():
-    db = getattr(g, '_database', None)
-    if db is None:
-        db = g._database = sqlite3.connect(app.config['DATABASE'])
-        db.row_factory = sqlite3.Row  # 支持字段名访问
-    return db
-
-@app.teardown_appcontext
-def close_connection(exception):
-    db = getattr(g, '_database', None)
-    if db is not None:
-        db.close()
-
-# 初始化数据库（首次运行自动创建表）
-def init_db():
-    with app.app_context():
-        init_db()  # 确保启动时就创建所有表
-        db = get_db()
-        cursor = db.cursor()
-        
-        # 1. 用户表
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                user_id TEXT PRIMARY KEY,
-                username TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL,
-                phone TEXT,
-                is_vip INTEGER DEFAULT 0,
-                create_time INTEGER NOT NULL
-            )
-        ''')
-        
-        # 2. 创作历史表
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS history (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id TEXT NOT NULL,
-                type TEXT NOT NULL,
-                prompt TEXT NOT NULL,
-                content TEXT NOT NULL,
-                create_time INTEGER NOT NULL
-            )
-        ''')
-        
-        # 3. 会员套餐表
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS vip_packages (
-                id TEXT PRIMARY KEY,
-                name TEXT NOT NULL,
-                price REAL NOT NULL,
-                cycle TEXT NOT NULL,
-                desc TEXT
+def get_custom_content(req_type, prompt, platform, tone):
+    if req_type == "short_video":
+        return f"""
+【{platform}爆款脚本-{tone}风格】
+标题：{prompt} - 90%的人都不知道的秘密！
+时长：30秒
+脚本：
+0-3秒（钩子）：家人们！今天给大家揭秘{prompt}的核心技巧，看完立省500块！
+3-20秒（主体）：首先...（你的产品核心卖点）；其次...（使用场景）；最后...（优惠活动）
+20-30秒（结尾）：点击下方链接，立即抢购！关注我，每天分享干货！
+背景音乐：轻快的流行音乐
+拍摄建议：近景+产品特写
+"""
+    else:
+        # 办公文案的自定义内容
+        return f"""
+# {prompt}
+## 一、文档说明
+{prompt}相关的办公文档，适用于{tone}风格的商务场景。
+## 二、核心内容
+1. 背景：XXX
+2. 目标：XXX
+3. 执行方案：XXX
+## 三、注意事项
+1. 格式规范：XXX
+2. 提交时间：XXX
+"""desc TEXT
             )
         ''')
         
@@ -128,7 +72,7 @@ def login():
                 'code': 200,
                 'data': {
                     'user_id': user['user_id'],
-                    'username': user['username'],
+                                        'username': user['username'],
                     'is_vip': bool(user['is_vip']),
                     'token': token
                 }
@@ -140,7 +84,7 @@ def login():
         logger.error(f"登录接口异常：{str(e)}")
         return jsonify({'code': 500, 'msg': '服务器内部错误'})
 
-# 2. 用户注册
+# 2. 用户注册（完整）
 @app.route('/api/register', methods=['POST'])
 def register():
     try:
@@ -172,7 +116,7 @@ def register():
         logger.error(f"注册接口异常：{str(e)}")
         return jsonify({'code': 500, 'msg': '服务器内部错误'})
 
-# 3. 获取创作历史（POST方法，修复405错误）
+# 3. 获取创作历史（完整）
 @app.route('/api/get_history', methods=['POST'])
 def get_history():
     try:
@@ -194,29 +138,59 @@ def get_history():
         logger.error(f"获取历史接口异常：{str(e)}")
         return jsonify({'code': 500, 'msg': '服务器内部错误'})
 
-# 4. AI内容生成
-@app.route('/api/', methods=['POST'])
+# 4. AI内容生成（完整，适配真实AI调用）
 @app.route('/api/ai_create', methods=['POST'])
 def ai_create():
     try:
         data = request.get_json()
-        user_id = data.get('user_id', '')
+        user_id = data.get('user_id', '').strip()
         prompt = data.get('prompt', '').strip()
+        type = data.get('type', 'short_video')
+        platform = data.get('platform', 'douyin')
+        tone = data.get('tone', 'humorous')
         
         if not user_id or not prompt:
-            return jsonify({'code': 400, 'msg': 'user_id和创作需求不能为空'})
+            return jsonify({'code': 400, 'msg': '必要参数不能为空'})
         
-        # 极简版生成内容（先保证接口能通）
-        content = f"✅ 创作成功！\n你的需求：{prompt}\n生成内容：这是一段测试内容，实际部署时替换为真实AI调用。"
+        # ========== 真实AI调用逻辑（替换此处即可） ==========
+        # 1. 拼接AI提示词
+        if type == 'short_video':
+            system_prompt = f"你是{platform}平台{tone}风格的短视频创作者，根据需求生成标题+文案+拍摄建议，控制在300字内"
+        else:
+            system_prompt = f"你是{tone}风格的办公文案助手，根据需求生成逻辑清晰的办公文案，控制在500字内"
+        
+        # 2. 调用真实AI接口（示例用OpenAI，可替换为文心/通义等）
+        import openai
+        openai.api_key = os.getenv("API_KEY")  # 从环境变量取密钥（安全）
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        content = response.choices[0].message.content.strip()
+        # ========== AI调用结束 ==========
+        
+        # 保存到历史记录
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute(
+            'INSERT INTO history (user_id, type, prompt, content, create_time) VALUES (?, ?, ?, ?, ?)',
+            (user_id, type, prompt, content, int(datetime.now().timestamp()))
+        )
+        db.commit()
         
         return jsonify({
             'code': 200,
             'data': {'content': content}
         })
+    
     except Exception as e:
         logger.error(f"AI生成接口异常：{str(e)}")
-        return jsonify({'code': 500, 'msg': f'服务器内部错误：{str(e)}'}), 500
-# 5. 获取会员套餐
+        return jsonify({'code': 500, 'msg': f'服务器内部错误：{str(e)}'})
+
+# 5. 获取会员套餐（完整）
 @app.route('/api/get_vip_packages', methods=['GET'])
 def get_vip_packages():
     try:
@@ -231,7 +205,7 @@ def get_vip_packages():
         logger.error(f"获取套餐接口异常：{str(e)}")
         return jsonify({'code': 500, 'msg': '服务器内部错误'})
 
-# 6. 创建会员订单
+# 6. 创建会员订单（完整）
 @app.route('/api/create_vip_order', methods=['POST'])
 def create_vip_order():
     try:
@@ -242,13 +216,13 @@ def create_vip_order():
         if not user_id or not package_id:
             return jsonify({'code': 400, 'msg': '参数不能为空'})
         
-        # 模拟创建订单（实际项目对接支付网关）
+        # 模拟创建订单
         order_id = f"order_{int(datetime.now().timestamp() * 1000)}"
         return jsonify({
             'code': 200,
             'data': {
                 'order_id': order_id,
-                'pay_url': f'https://example.com/pay?order={order_id}'  # 模拟支付链接
+                'pay_url': f'https://example.com/pay?order={order_id}'
             }
         })
     
@@ -257,7 +231,7 @@ def create_vip_order():
         return jsonify({'code': 500, 'msg': '服务器内部错误'})
 
 # --------------------------
-# 全局错误处理
+# 全局错误处理（完整）
 # --------------------------
 @app.errorhandler(404)
 def page_not_found(e):
@@ -272,9 +246,10 @@ def internal_server_error(e):
     return jsonify({'code': 500, 'msg': '服务器内部错误'}), 500
 
 # --------------------------
-# 启动入口
+# 启动入口（完整）
 # --------------------------
 if __name__ == '__main__':
-    init_db()  # 初始化数据库
-    port = int(os.environ.get('PORT', 8080))  # 兼容Railway端口
-    app.run(host='0.0.0.0', port=port, debug=False)  # 生产环境关闭debug
+    init_db()
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port, debug=True)  # 测试阶段开启debug
+            
