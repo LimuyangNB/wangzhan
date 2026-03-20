@@ -1,6 +1,7 @@
-gunicorn
+# 项目核心依赖
 flask>=2.0.0
 flask-cors>=4.0.0
+# 部署用的WSGI服务器
 gunicorn>=21.0.0
-psycopg2-binary==2.9.9
+# MySQL数据库驱动（必须加，解决ModuleNotFoundError）
 pymysql
