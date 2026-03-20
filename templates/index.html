@@ -774,7 +774,7 @@
 
             async request(options) {
                 const { url, method = 'GET', data = {}, headers = {} } = options;
-                const fullUrl = `${this.baseUrl}${url}`;
+                let fullUrl = `${this.baseUrl}${url}`;
 
                 try {
                     this.logger.info('ApiClient', `发起${method}请求`, { url: fullUrl, data });
