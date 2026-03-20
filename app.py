@@ -60,6 +60,13 @@ logger = setup_logger()
 # 基础配置
 app = Flask(__name__)
 
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    import traceback
+    print(traceback.format_exc())  # 打印完整堆栈
+    return "Internal Server Error", 500
+
 @app.route('/')
 def index():
     return render_template('index.html')  # 注意：Flask 默认会去 templates 文件夹找模板
