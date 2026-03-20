@@ -123,50 +123,89 @@
         .theme-lightcyan-item {background: #06b6d4;}
         .theme-confirm-btn {width: 100%; background: var(--primary); color: var(--text-white); border: none; padding: 12px 0; border-radius: 8px; font-size: 16px; cursor: pointer;}
 
-        .log-modal {position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1002; display: flex; align-items: center; justify-content: center;}
-        .log-modal-content {width: 90%; max-width: 400px; background: var(--bg-card); border-radius: 12px; padding: 20px; max-height: 80vh; overflow-y: auto;}
-        .log-modal-title {font-size: 18px; font-weight: 600; margin-bottom: 15px; color: var(--text-main); display: flex; justify-content: space-between; align-items: center;}
-        .log-close-btn {background: none; border: none; color: var(--text-gray); font-size: 20px; cursor: pointer;}
-        .log-content {font-size: 12px; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap; max-height: 60vh; overflow-y: auto; padding: 10px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 15px;}
-        .log-export-action {display: flex; gap: 10px;}
-        .log-export-action button {flex: 1; padding: 10px 0; border-radius: 6px; border: none; font-size: 14px; cursor: pointer;}
-        .log-clear-btn {background: #ef4444; color: white;}
-        .log-save-btn {background: var(--primary); color: white;}
-        
-        /* 日志导出按钮样式 */
-        #logExportBtn {
+        .log-export-btn {
             position: fixed;
-            bottom: 90px;
+            bottom: 80px;
             right: 15px;
             width: 40px;
             height: 40px;
             border-radius: 50%;
             background: var(--primary);
-            color: white;
+            color: var(--text-white);
             border: none;
             font-size: 18px;
             cursor: pointer;
-            z-index: 90;
+            z-index: 80;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
-
-        /* 新增：加载中样式（不影响原有逻辑） */
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 8px;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .btn-loading {
+        .log-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1002;
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+        .log-modal-content {
+            width: 90%;
+            max-width: 400px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .log-modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--text-main);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .log-close-btn {
+            background: none;
+            border: none;
+            color: var(--text-gray);
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .log-content {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            white-space: pre-wrap;
+            max-height: 60vh;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        .log-export-action {
+            display: flex;
+            gap: 10px;
+        }
+        .log-export-action button {
+            flex: 1;
+            padding: 10px 0;
+            border-radius: 6px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .log-clear-btn {
+            background: #ef4444;
+            color: white;
+        }
+        .log-save-btn {
+            background: var(--primary);
+            color: white;
         }
     </style>
 </head>
@@ -272,25 +311,9 @@
     </div>
 
     <div class="vip-modal hide" id="vipModal">
-        <div class="vip-modal-content modal-inner">
+        <div class="vip-modal-content">
             <div class="vip-modal-title">开通VIP会员</div>
             <div class="vip-package-list" id="vipPackageList">
-                <!-- 会员套餐列表（动态生成） -->
-                <div class="vip-package-item active" data-package-id="1">
-                    <div class="package-name">月会员</div>
-                    <div class="package-price">¥19.9/月</div>
-                    <div class="package-desc">无限制生成，每月更新</div>
-                </div>
-                <div class="vip-package-item" data-package-id="2">
-                    <div class="package-name">季会员</div>
-                    <div class="package-price">¥49.9/季</div>
-                    <div class="package-desc">无限制生成，立省9.8元</div>
-                </div>
-                <div class="vip-package-item" data-package-id="3">
-                    <div class="package-name">年会员</div>
-                    <div class="package-price">¥159/年</div>
-                    <div class="package-desc">无限制生成，立省79.8元</div>
-                </div>
             </div>
             <button class="vip-pay-btn" id="vipPayBtn">立即支付</button>
             <button class="vip-close-btn" id="vipCloseBtn">关闭</button>
@@ -299,7 +322,7 @@
     </div>
 
     <div class="auth-modal hide" id="authModal">
-        <div class="auth-modal-content modal-inner">
+        <div class="auth-modal-content">
             <div class="auth-tabs">
                 <div class="auth-tab active" data-tab="login">登录</div>
                 <div class="auth-tab" data-tab="register">注册</div>
@@ -336,7 +359,7 @@
     </div>
 
     <div class="theme-modal hide" id="themeModal">
-        <div class="theme-modal-content modal-inner">
+        <div class="theme-modal-content">
             <div class="theme-modal-title">自定义主题色</div>
             <div class="theme-custom">
                 <label for="colorPicker">手动选择：</label>
@@ -357,7 +380,7 @@
     </div>
 
     <div class="log-modal hide" id="logModal">
-        <div class="log-modal-content modal-inner">
+        <div class="log-modal-content">
             <div class="log-modal-title">
                 <span>客户端日志</span>
                 <button class="log-close-btn" id="logCloseBtn">×</button>
@@ -394,7 +417,7 @@
             saveLogs() {
                 try {
                     if (this.logs.length > this.MAX_LOG_COUNT) {
-                        this.logs = this.logs.slice(-this.MAX_LOG_COUNT); // 保留最新1000条
+                        this.logs = this.logs.slice(-this.MAX_LOG_COUNT);
                     }
                     localStorage.setItem(this.LOG_STORAGE_KEY, JSON.stringify(this.logs));
                 } catch (e) {
@@ -403,10 +426,15 @@
             }
 
             getTimestamp() {
-                // 手动格式化时间戳，兼容所有浏览器
                 const now = new Date();
-                const pad = n => n.toString().padStart(2, '0');
-                return `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+                return now.toLocaleString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
             }
 
             log(level, module, message, data = null) {
@@ -447,7 +475,6 @@
             }
 
             getFormattedLogs() {
-                // 修复：logItem.module 而非全局module
                 return this.logs.map(item => {
                     let dataStr = item.data ? JSON.stringify(item.data, null, 2) : '';
                     return `[${item.time}] [${item.level}] [${item.module}] ${item.message} ${dataStr}`;
@@ -478,15 +505,13 @@
         }
 
         // 全局变量
+        const SERVER_URL = "http://127.0.0.1:8080";
         let userInfo = null;
         let isVip = false;
         let selectedTheme = "theme-lightblue";
         let customPrimaryColor = "#4299e1";
         let selectedPackageId = 1;
-        let recognition = null; // 全局语音识别实例，避免重复创建
         const logger = new ClientLogger();
-        // 新增：防止重复提交（不影响原有逻辑）
-        let isGenerating = false;
 
         // 页面加载
         window.onload = function() {
@@ -560,10 +585,6 @@
                 if (savedUser) {
                     try {
                         userInfo = JSON.parse(savedUser);
-                        // 校验用户信息完整性
-                        if (!userInfo.user_id || !userInfo.username) {
-                            throw new Error("用户信息不完整");
-                        }
                         if (authModal) authModal.classList.add("hide");
                         showMainUI();
                         getUserInfo();
@@ -638,7 +659,6 @@
                 
                 if (customColor) {
                     document.documentElement.style.setProperty('--primary', customColor);
-                    // 修复：正确生成浅色调（添加20%透明度）
                     const lightColor = customColor + '20';
                     document.documentElement.style.setProperty('--bg-primary-light', lightColor);
                 }
@@ -673,6 +693,7 @@
                 const mainTabBar = document.getElementById("mainTabBar");
                 const footerVip = document.getElementById("footerVip");
                 const shortVideo = document.getElementById("shortVideo");
+                const logExportBtn = document.getElementById("logExportBtn");
                 const countTip = document.getElementById("countTip");
                 const vipStatusTip = document.getElementById("vipStatusTip");
                 
@@ -681,18 +702,20 @@
                 if (mainTabBar) mainTabBar.classList.remove("hide");
                 if (footerVip) footerVip.classList.remove("hide");
                 if (shortVideo) shortVideo.classList.remove("hide");
+                if (logExportBtn) logExportBtn.classList.remove("hide");
+                if (countTip) countTip.classList.remove("hide");
                 
-                // 显示次数提示/VIP提示
+                // 根据VIP状态切换提示
                 if (isVip) {
-                    if (vipStatusTip) vipStatusTip.classList.remove("hide");
                     if (countTip) countTip.classList.add("hide");
+                    if (vipStatusTip) vipStatusTip.classList.remove("hide");
                 } else {
                     if (countTip) countTip.classList.remove("hide");
                     if (vipStatusTip) vipStatusTip.classList.add("hide");
                 }
                 
                 getVipPackages();
-                loadHistory(); // 加载历史记录
+                loadHistory();
                 logger.info('主界面', '主界面显示成功', { username: userInfo.username });
             } catch (e) {
                 logger.error('主界面', '主界面显示失败', e);
@@ -713,110 +736,713 @@
                 bindCloseBtnEvent();
                 bindThemeEvent();
                 bindLogEvents();
-                // 新增：绑定防重复提交逻辑（不影响原有逻辑）
-                bindPreventRepeatSubmit();
+                
+                logger.info('事件绑定', '所有事件绑定完成');
             } catch (e) {
-                logger.error('事件绑定', '绑定所有事件失败', e);
+                logger.error('事件绑定', '事件绑定失败', e);
             }
         }
 
-        // 新增：防重复提交（一键生成按钮）
-        function bindPreventRepeatSubmit() {
-            const svCreateBtn = document.getElementById('svCreate');
-            const ofCreateBtn = document.getElementById('ofCreate');
-            
-            // 短视频生成按钮
-            if (svCreateBtn) {
-                svCreateBtn.addEventListener('click', function() {
-                    if (isGenerating) return;
-                    isGenerating = true;
-                    this.innerHTML = '<span class="loading"></span>生成中...';
-                    this.disabled = true;
-                    
-                    // 模拟生成完成后恢复（实际场景中替换为接口回调）
-                    setTimeout(() => {
-                        isGenerating = false;
-                        this.innerHTML = '一键生成';
-                        this.disabled = false;
-                    }, 3000);
-                });
-            }
-            
-            // 办公创作生成按钮
-            if (ofCreateBtn) {
-                ofCreateBtn.addEventListener('click', function() {
-                    if (isGenerating) return;
-                    isGenerating = true;
-                    this.innerHTML = '<span class="loading"></span>生成中...';
-                    this.disabled = true;
-                    
-                    // 模拟生成完成后恢复（实际场景中替换为接口回调）
-                    setTimeout(() => {
-                        isGenerating = false;
-                        this.innerHTML = '一键生成';
-                        this.disabled = false;
-                    }, 3000);
-                });
-            }
-        }
-
-        // 以下为原有未完成的事件绑定函数（补充空实现，避免报错）
+        // 绑定登录/注册标签事件
         function bindAuthTabEvent() {
-            // 原有逻辑（若有）
-            logger.info('事件绑定', '绑定认证标签事件');
+            const authTabs = document.querySelectorAll(".auth-tab");
+            const authForms = document.querySelectorAll(".auth-form");
+            
+            if (!authTabs || !authForms) return;
+            
+            authTabs.forEach(tab => {
+                tab.onclick = function() {
+                    authTabs.forEach(t => t.classList.remove("active"));
+                    this.classList.add("active");
+                    const tabName = this.dataset.tab;
+                    authForms.forEach(f => f.classList.remove("active"));
+                    
+                    const form = document.getElementById(`${tabName}Form`);
+                    const status = document.getElementById(`${tabName}Status`);
+                    
+                    if (form) form.classList.add("active");
+                    if (status) status.innerText = "";
+                    logger.info('登录注册', `切换到${tabName}标签`);
+                }
+            });
         }
+
+        // 绑定登录/注册按钮事件
         function bindAuthBtnEvent() {
-            // 原有逻辑（若有）
-            logger.info('事件绑定', '绑定认证按钮事件');
+            // 登录按钮
+            const loginBtn = document.getElementById("loginBtn");
+            if (loginBtn) {
+                loginBtn.onclick = async function() {
+                    const username = document.getElementById("loginUsername")?.value.trim();
+                    const password = document.getElementById("loginPassword")?.value.trim();
+                    const loginStatus = document.getElementById("loginStatus");
+                    
+                    if (!username || !password) {
+                        if (loginStatus) loginStatus.innerText = "用户名和密码不能为空";
+                        logger.warn('登录', '用户名或密码为空');
+                        return;
+                    }
+                    
+                    try {
+                        const response = await fetch(`${SERVER_URL}/api/login`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ username, password })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.code === 200) {
+                            userInfo = result.data;
+                            localStorage.setItem("ai_creator_user", JSON.stringify(userInfo));
+                            isVip = userInfo.is_vip || false;
+                            showMainUI();
+                            const authModal = document.getElementById("authModal");
+                            if (authModal) authModal.classList.add("hide");
+                            if (loginStatus) loginStatus.innerText = "";
+                            logger.info('登录', '登录成功', { username });
+                        } else {
+                            if (loginStatus) loginStatus.innerText = result.msg || "登录失败";
+                            logger.error('登录', '登录失败', result);
+                        }
+                    } catch (e) {
+                        if (loginStatus) loginStatus.innerText = "网络错误，请重试";
+                        logger.error('登录', '登录请求异常', e);
+                    }
+                }
+            }
+            
+            // 注册按钮
+            const registerBtn = document.getElementById("registerBtn");
+            if (registerBtn) {
+                registerBtn.onclick = async function() {
+                    const username = document.getElementById("regUsername")?.value.trim();
+                    const password = document.getElementById("regPassword")?.value.trim();
+                    const phone = document.getElementById("regPhone")?.value.trim();
+                    const registerStatus = document.getElementById("registerStatus");
+                    
+                    if (!username || !password) {
+                        if (registerStatus) registerStatus.innerText = "用户名和密码不能为空";
+                        logger.warn('注册', '用户名或密码为空');
+                        return;
+                    }
+                    
+                    try {
+                        const response = await fetch(`${SERVER_URL}/api/register`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ username, password, phone })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.code === 200) {
+                            if (registerStatus) registerStatus.innerText = "注册成功，请登录";
+                            // 切换到登录标签
+                            const authTabs = document.querySelectorAll(".auth-tab");
+                            authTabs.forEach(t => t.classList.remove("active"));
+                            authTabs[0].classList.add("active");
+                            
+                            const authForms = document.querySelectorAll(".auth-form");
+                            authForms.forEach(f => f.classList.remove("active"));
+                            document.getElementById("loginForm").classList.add("active");
+                            
+                            logger.info('注册', '注册成功', { username });
+                        } else {
+                            if (registerStatus) registerStatus.innerText = result.msg || "注册失败";
+                            logger.error('注册', '注册失败', result);
+                        }
+                    } catch (e) {
+                        if (registerStatus) registerStatus.innerText = "网络错误，请重试";
+                        logger.error('注册', '注册请求异常', e);
+                    }
+                }
+            }
         }
+
+        // 绑定退出登录事件
         function bindLogoutEvent() {
-            // 原有逻辑（若有）
-            logger.info('事件绑定', '绑定退出登录事件');
+            const logoutBtn = document.getElementById("logoutBtn");
+            if (logoutBtn) {
+                logoutBtn.onclick = function() {
+                    localStorage.removeItem("ai_creator_user");
+                    userInfo = null;
+                    isVip = false;
+                    
+                    // 隐藏主界面，显示登录弹窗
+                    const userSetting = document.getElementById("userSetting");
+                    const mainTabBar = document.getElementById("mainTabBar");
+                    const footerVip = document.getElementById("footerVip");
+                    const logExportBtn = document.getElementById("logExportBtn");
+                    const authModal = document.getElementById("authModal");
+                    
+                    if (userSetting) userSetting.classList.add("hide");
+                    if (mainTabBar) mainTabBar.classList.add("hide");
+                    if (footerVip) footerVip.classList.add("hide");
+                    if (logExportBtn) logExportBtn.classList.add("hide");
+                    if (authModal) authModal.classList.remove("hide");
+                    
+                    // 隐藏所有tab内容
+                    const tabContents = document.querySelectorAll(".tab-content");
+                    tabContents.forEach(tab => tab.classList.add("hide"));
+                    
+                    logger.info('退出登录', '用户退出登录');
+                }
+            }
         }
+
+        // 绑定标签切换事件
         function bindTabEvent() {
-            // 原有逻辑（若有）
-            logger.info('事件绑定', '绑定标签栏事件');
+            const tabItems = document.querySelectorAll(".tab-item");
+            const tabContents = document.querySelectorAll(".tab-content");
+            
+            if (!tabItems || !tabContents) return;
+            
+            tabItems.forEach(tab => {
+                tab.onclick = function() {
+                    tabItems.forEach(t => t.classList.remove("active"));
+                    this.classList.add("active");
+                    const tabName = this.dataset.tab;
+                    
+                    tabContents.forEach(content => {
+                        content.classList.add("hide");
+                        if (content.id === tabName)
+                                                    content.classList.remove("hide");
+                    });
+                    
+                    // 切换到历史记录时重新加载
+                    if (tabName === "history") {
+                        loadHistory();
+                    }
+                    
+                    logger.info('标签切换', `切换到${tabName}标签`);
+                }
+            });
         }
+
+        // 绑定生成按钮事件
         function bindCreateEvent() {
-            // 原有逻辑（若有）
-            logger.info('事件绑定', '绑定生成按钮事件');
+            // 短视频生成
+            const svCreate = document.getElementById("svCreate");
+            if (svCreate) {
+                svCreate.onclick = async function() {
+                    const platform = document.getElementById("svPlatform")?.value;
+                    const tone = document.getElementById("svTone")?.value;
+                    const prompt = document.getElementById("svPrompt")?.value.trim();
+                    const resultEl = document.getElementById("svResult");
+                    
+                    if (!prompt) {
+                        alert("请输入创作需求！");
+                        logger.warn('内容生成', '短视频创作需求为空');
+                        return;
+                    }
+                    
+                    resultEl.innerText = "AI正在思考中...";
+                    logger.info('内容生成', '开始生成短视频内容', { platform, tone, prompt });
+                    
+                    try {
+                        const response = await fetch(`${SERVER_URL}/api/create/content`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                type: "short_video",
+                                platform,
+                                tone,
+                                prompt,
+                                user_id: userInfo.user_id
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.code === 200) {
+                            resultEl.innerText = result.data.content;
+                            // 保存到历史记录
+                            saveHistory({
+                                type: "short_video",
+                                prompt,
+                                content: result.data.content,
+                                create_time: new Date().getTime()
+                            });
+                            logger.info('内容生成', '短视频内容生成成功');
+                        } else {
+                            resultEl.innerText = result.msg || "生成失败，请重试";
+                            logger.error('内容生成', '短视频内容生成失败', result);
+                        }
+                    } catch (e) {
+                        resultEl.innerText = "网络错误，请重试";
+                        logger.error('内容生成', '短视频生成请求异常', e);
+                    }
+                }
+            }
+            
+            // 办公创作生成
+            const ofCreate = document.getElementById("ofCreate");
+            if (ofCreate) {
+                ofCreate.onclick = async function() {
+                    const tone = document.getElementById("ofTone")?.value;
+                    const prompt = document.getElementById("ofPrompt")?.value.trim();
+                    const resultEl = document.getElementById("ofResult");
+                    
+                    if (!prompt) {
+                        alert("请输入创作需求！");
+                        logger.warn('内容生成', '办公创作需求为空');
+                        return;
+                    }
+                    
+                    resultEl.innerText = "AI正在思考中...";
+                    logger.info('内容生成', '开始生成办公内容', { tone, prompt });
+                    
+                    try {
+                        const response = await fetch(`${SERVER_URL}/api/create/content`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                type: "office",
+                                tone,
+                                prompt,
+                                user_id: userInfo.user_id
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.code === 200) {
+                            resultEl.innerText = result.data.content;
+                            // 保存到历史记录
+                            saveHistory({
+                                type: "office",
+                                prompt,
+                                content: result.data.content,
+                                create_time: new Date().getTime()
+                            });
+                            logger.info('内容生成', '办公内容生成成功');
+                        } else {
+                            resultEl.innerText = result.msg || "生成失败，请重试";
+                            logger.error('内容生成', '办公内容生成失败', result);
+                        }
+                    } catch (e) {
+                        resultEl.innerText = "网络错误，请重试";
+                        logger.error('内容生成', '办公生成请求异常', e);
+                    }
+                }
+            }
         }
+
+        // 绑定语音输入事件
         function bindVoiceEvent() {
-            // 原有逻辑（若有）
-            logger.info('事件绑定', '绑定语音输入事件');
+            // 检查浏览器是否支持语音识别
+            const isSupportSpeech = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+            
+            const bindVoice = (btnId, inputId) => {
+                const btn = document.getElementById(btnId);
+                const input = document.getElementById(inputId);
+                
+                if (!btn || !input) return;
+                
+                if (!isSupportSpeech) {
+                    btn.innerText = "语音输入(不支持)";
+                    btn.disabled = true;
+                    logger.warn('语音输入', '浏览器不支持语音识别');
+                    return;
+                }
+                
+                btn.onclick = function() {
+                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    const recognition = new SpeechRecognition();
+                    
+                    recognition.lang = 'zh-CN';
+                    recognition.interimResults = false;
+                    recognition.maxAlternatives = 1;
+                    
+                    btn.innerText = "正在倾听...";
+                    btn.disabled = true;
+                    logger.info('语音输入', '开始语音识别');
+                    
+                    recognition.onresult = function(event) {
+                        const transcript = event.results[0][0].transcript;
+                        input.value = transcript;
+                        logger.info('语音输入', '语音识别成功', { transcript });
+                    };
+                    
+                    recognition.onend = function() {
+                        btn.innerText = "语音输入";
+                        btn.disabled = false;
+                    };
+                    
+                    recognition.onerror = function(event) {
+                        alert(`语音识别错误: ${event.error}`);
+                        btn.innerText = "语音输入";
+                        btn.disabled = false;
+                        logger.error('语音输入', '语音识别错误', event.error);
+                    };
+                    
+                    recognition.start();
+                };
+            };
+            
+            bindVoice("svVoice", "svPrompt");
+            bindVoice("ofVoice", "ofPrompt");
         }
+
+        // 绑定复制按钮事件
         function bindCopyEvent() {
-            // 原有逻辑（若有）
-            logger.info('事件绑定', '绑定复制按钮事件');
+            const copyToClipboard = (text, btn) => {
+                if (!navigator.clipboard) {
+                    // 降级方案
+                    const textArea = document.createElement("textarea");
+                    textArea.value = text;
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        alert("复制成功！");
+                        logger.info('内容复制', '使用降级方案复制成功');
+                    } catch (err) {
+                        alert("复制失败，请手动复制");
+                        logger.error('内容复制', '降级方案复制失败', err);
+                    }
+                    document.body.removeChild(textArea);
+                    return;
+                }
+                
+                navigator.clipboard.writeText(text).then(() => {
+                    alert("复制成功！");
+                    logger.info('内容复制', '复制成功');
+                }).catch(err => {
+                    alert("复制失败，请手动复制");
+                    logger.error('内容复制', '复制失败', err);
+                });
+            };
+            
+            // 短视频复制
+            const svCopy = document.getElementById("svCopy");
+            if (svCopy) {
+                svCopy.onclick = function() {
+                    const content = document.getElementById("svResult")?.innerText;
+                    if (!content || content === "AI正在思考中...") {
+                        alert("暂无可复制的内容！");
+                        return;
+                    }
+                    copyToClipboard(content, this);
+                };
+            }
+            
+            // 办公内容复制
+            const ofCopy = document.getElementById("ofCopy");
+            if (ofCopy) {
+                ofCopy.onclick = function() {
+                    const content = document.getElementById("ofResult")?.innerText;
+                    if (!content || content === "AI正在思考中...") {
+                        alert("暂无可复制的内容！");
+                        return;
+                    }
+                    copyToClipboard(content, this);
+                };
+            }
         }
+
+        // 绑定VIP相关事件
         function bindVipEvent() {
-            // 原有逻辑（若有）
-            logger.info('事件绑定', '绑定VIP相关事件');
+            // 开通VIP按钮
+            const vipBtn = document.getElementById("vipBtn");
+            if (vipBtn) {
+                vipBtn.onclick = function() {
+                    const vipModal = document.getElementById("vipModal");
+                    if (vipModal) vipModal.classList.remove("hide");
+                    logger.info('VIP功能', '打开VIP购买弹窗');
+                };
+            }
+            
+            // VIP套餐选择
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('vip-package-item') || e.target.closest('.vip-package-item')) {
+                    const item = e.target.closest('.vip-package-item');
+                    const allItems = document.querySelectorAll('.vip-package-item');
+                    allItems.forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    selectedPackageId = parseInt(item.dataset.packageId);
+                    logger.info('VIP功能', `选择套餐ID: ${selectedPackageId}`);
+                }
+            });
+            
+            // 支付按钮
+            const vipPayBtn = document.getElementById("vipPayBtn");
+            if (vipPayBtn) {
+                vipPayBtn.onclick = async function() {
+                    const vipPayStatus = document.getElementById("vipPayStatus");
+                    if (vipPayStatus) vipPayStatus.innerText = "正在处理支付...";
+                    
+                    try {
+                        const response = await fetch(`${SERVER_URL}/api/vip/purchase`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                user_id: userInfo.user_id,
+                                package_id: selectedPackageId
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.code === 200) {
+                            if (vipPayStatus) vipPayStatus.innerText = "支付成功！VIP已开通";
+                            isVip = true;
+                            userInfo.is_vip = true;
+                            localStorage.setItem("ai_creator_user", JSON.stringify(userInfo));
+                            
+                            // 更新UI
+                            const countTip = document.getElementById("countTip");
+                            const vipStatusTip = document.getElementById("vipStatusTip");
+                            if (countTip) countTip.classList.add("hide");
+                            if (vipStatusTip) vipStatusTip.classList.remove("hide");
+                            
+                            setTimeout(() => {
+                                const vipModal = document.getElementById("vipModal");
+                                if (vipModal) vipModal.classList.add("hide");
+                            }, 2000);
+                            
+                            logger.info('VIP功能', 'VIP购买成功', { package_id: selectedPackageId });
+                        } else {
+                            if (vipPayStatus) vipStatusTip.innerText = result.msg || "支付失败";
+                            logger.error('VIP功能', 'VIP购买失败', result);
+                        }
+                    } catch (e) {
+                        if (vipPayStatus) vipPayStatus.innerText = "网络错误，请重试";
+                        logger.error('VIP功能', 'VIP购买请求异常', e);
+                    }
+                };
+            }
         }
+
+        // 绑定关闭按钮事件
         function bindCloseBtnEvent() {
-            // 原有逻辑（若有）
-            logger.info('事件绑定', '绑定关闭按钮事件');
+            // VIP弹窗关闭
+            const vipCloseBtn = document.getElementById("vipCloseBtn");
+            if (vipCloseBtn) {
+                vipCloseBtn.onclick = function() {
+                    const vipModal = document.getElementById("vipModal");
+                    if (vipModal) vipModal.classList.add("hide");
+                    logger.info('弹窗操作', '关闭VIP弹窗');
+                };
+            }
+            
+            // 日志弹窗关闭
+            const logCloseBtn = document.getElementById("logCloseBtn");
+            if (logCloseBtn) {
+                logCloseBtn.onclick = function() {
+                    const logModal = document.getElementById("logModal");
+                    if (logModal) logModal.classList.add("hide");
+                    logger.info('弹窗操作', '关闭日志弹窗');
+                };
+            }
         }
+
+        // 绑定主题设置事件
         function bindThemeEvent() {
-            // 原有逻辑（若有）
-            logger.info('事件绑定', '绑定主题设置事件');
+            // 打开主题设置
+            const themeSet = document.getElementById("themeSet");
+            if (themeSet) {
+                themeSet.onclick = function() {
+                    const themeModal = document.getElementById("themeModal");
+                    if (themeModal) themeModal.classList.remove("hide");
+                    logger.info('主题设置', '打开主题设置弹窗');
+                };
+            }
+            
+            // 预设主题选择
+            const themeItems = document.querySelectorAll(".theme-item");
+            if (themeItems) {
+                themeItems.forEach(item => {
+                    item.onclick = function() {
+                        themeItems.forEach(i => i.classList.remove("active"));
+                        this.classList.add("active");
+                        selectedTheme = this.dataset.theme;
+                        logger.info('主题设置', `选择预设主题: ${selectedTheme}`);
+                    };
+                });
+            }
+            
+            // 颜色选择器
+            const colorPicker = document.getElementById("colorPicker");
+            if (colorPicker) {
+                colorPicker.oninput = function() {
+                    customPrimaryColor = this.value;
+                    applyTheme(selectedTheme, customPrimaryColor);
+                    logger.info('主题设置', `选择自定义颜色: ${customPrimaryColor}`);
+                };
+            }
+            
+            // 确认应用主题
+            const themeConfirmBtn = document.getElementById("themeConfirmBtn");
+            if (themeConfirmBtn) {
+                themeConfirmBtn.onclick = function() {
+                    saveTheme(selectedTheme, customPrimaryColor);
+                    const themeModal = document.getElementById("themeModal");
+                    if (themeModal) themeModal.classList.add("hide");
+                    logger.info('主题设置', '应用主题成功');
+                };
+            }
         }
+
+        // 绑定日志相关事件
         function bindLogEvents() {
-            // 原有逻辑（若有）
-            logger.info('事件绑定', '绑定日志相关事件');
+            // 打开日志弹窗
+            const logExportBtn = document.getElementById("logExportBtn");
+            if (logExportBtn) {
+                logExportBtn.onclick = function() {
+                    const logModal = document.getElementById("logModal");
+                    const logContent = document.getElementById("logContent");
+                    if (logContent) logContent.innerText = logger.getFormattedLogs();
+                    if (logModal) logModal.classList.remove("hide");
+                    logger.info('日志操作', '打开日志弹窗');
+                };
+            }
+            
+            // 清空日志
+            const logClearBtn = document.getElementById("logClearBtn");
+            if (logClearBtn) {
+                logClearBtn.onclick = function() {
+                    if (confirm("确定要清空日志吗？")) {
+                        logger.clearLogs();
+                        const logContent = document.getElementById("logContent");
+                        if (logContent) logContent.innerText = "";
+                        logger.info('日志操作', '清空日志');
+                    }
+                };
+            }
+            
+            // 导出日志
+            const logSaveBtn = document.getElementById("logSaveBtn");
+            if (logSaveBtn) {
+                logSaveBtn.onclick = function() {
+                    logger.exportLogs();
+                    logger.info('日志操作', '导出日志');
+                };
+            }
         }
-        function getUserInfo() {
-            // 原有逻辑（若有）
-            logger.info('用户信息', '获取用户信息');
+
+        // 获取用户信息
+        async function getUserInfo() {
+            try {
+                const response = await fetch(`${SERVER_URL}/api/user/info`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userInfo.user_id })
+                });
+                
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    userInfo = result.data;
+                    isVip = userInfo.is_vip || false;
+                    localStorage.setItem("ai_creator_user", JSON.stringify(userInfo));
+                    
+                    // 更新VIP状态显示
+                    const countTip = document.getElementById("countTip");
+                    const vipStatusTip = document.getElementById("vipStatusTip");
+                    if (isVip) {
+                        if (countTip) countTip.classList.add("hide");
+                        if (vipStatusTip) vipStatusTip.classList.remove("hide");
+                    }
+                    
+                    logger.info('用户信息', '获取用户信息成功', { is_vip: isVip });
+                }
+            } catch (e) {
+                logger.error('用户信息', '获取用户信息失败', e);
+            }
         }
-        function getVipPackages() {
-            // 原有逻辑（若有）
-            logger.info('VIP套餐', '获取VIP套餐信息');
+
+        // 获取VIP套餐
+        async function getVipPackages() {
+            try {
+                const response = await fetch(`${SERVER_URL}/api/vip/packages`);
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    const packages = result.data;
+                    const packageList = document.getElementById("vipPackageList");
+                    
+                    if (packageList) {
+                        packageList.innerHTML = "";
+                        packages.forEach(pkg => {
+                            const item = document.createElement("div");
+                            item.className = `vip-package-item ${pkg.id === 1 ? 'active' : ''}`;
+                            item.dataset.packageId = pkg.id;
+                            item.innerHTML = `
+                                <div class="package-name">${pkg.name}</div>
+                                <div class="package-price">¥${pkg.price}</div>
+                                <div class="package-desc">${pkg.description}</div>
+                            `;
+                            packageList.appendChild(item);
+                        });
+                    }
+                    
+                    logger.info('VIP功能', '获取VIP套餐成功', { count: packages.length });
+                }
+            } catch (e) {
+                logger.error('VIP功能', '获取VIP套餐失败', e);
+            }
         }
+
+        // 保存历史记录
+        function saveHistory(historyItem) {
+            try {
+                const HISTORY_KEY = `ai_creator_history_${userInfo.user_id}`;
+                let histories = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+                
+                histories.unshift(historyItem);
+                // 最多保存100条
+                if (histories.length > 100) histories = histories.slice(0, 100);
+                
+                localStorage.setItem(HISTORY_KEY, JSON.stringify(histories));
+                logger.info('历史记录', '保存历史记录成功');
+            } catch (e) {
+                logger.error('历史记录', '保存历史记录失败', e);
+            }
+        }
+
+        // 加载历史记录
         function loadHistory() {
-            // 原有逻辑（若有）
-            logger.info('历史记录', '加载历史记录');
+            try {
+                const HISTORY_KEY = `ai_creator_history_${userInfo.user_id}`;
+                const histories = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+                const historyList = document.getElementById("historyList");
+                
+                if (!historyList) return;
+                
+                if (histories.length === 0) {
+                    historyList.innerHTML = '<div style="text-align:center; color:var(--text-gray); padding:20px 0;">暂无生成记录，快去创作吧~</div>';
+                    return;
+                }
+                
+                historyList.innerHTML = "";
+                histories.forEach((item, index) => {
+                    const timeStr = new Date(item.create_time).toLocaleString();
+                    const typeName = item.type === "short_video" ? "短视频创作" : "办公创作";
+                    
+                    const historyItem = document.createElement("div");
+                    historyItem.className = "history-item";
+                    historyItem.innerHTML = `
+                        <div class="history-time">${timeStr} · ${typeName}</div>
+                        <div class="history-prompt">需求：${item.prompt}</div>
+                        <div class="history-content">${item.content.substring(0, 100)}${item.content.length > 100 ? '...' : ''}</div>
+                    `;
+                    historyList.appendChild(historyItem);
+                });
+                
+                logger.info('历史记录', `加载${histories.length}条历史记录`);
+            } catch (e) {
+                logger.error('历史记录', '加载历史记录失败', e);
+            }
         }
+
+        // 全局错误捕获
+        window.onerror = function(message, source, lineno, colno, error) {
+            logger.error('全局错误', message, { source, lineno, colno, error });
+            return true;
+        };
     </script>
 </body>
 </html>
