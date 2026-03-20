@@ -1,6 +1,6 @@
 # 导入必要的库
 from flask import Flask, request, jsonify
-import pymysql2
+import pymysql
 import hashlib
 
 # 初始化 Flask 应用
