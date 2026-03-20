@@ -2,1340 +2,1348 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <title>AI内容创作工具-手机端</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI创作助手</title>
     <style>
-        * {margin: 0; padding: 0; box-sizing: border-box; font-family: "PingFang SC", "Microsoft YaHei";}
         :root {
-            --bg-main: #f8f9fa;
-            --bg-card: #ffffff;
-            --bg-btn-secondary: #fff;
-            --bg-primary-light: #e8edff;
-            --bg-vip-light: #fff8f0;
-            --border: #e5e7eb;
-            --text-main: #333333;
-            --text-secondary: #6b7280;
-            --text-gray: #9ca3af;
-            --text-white: #ffffff;
-            --text-vip: #ff9500;
-            --primary: #4299e1;
-            --vip-color: #ff9500;
+            --primary: #4096ff;
+            --primary-light: #69b1ff;
+            --primary-dark: #1d73d8;
+            --success: #52c41a;
+            --warning: #faad14;
+            --error: #ff4d4f;
+            --text-main: #333;
+            --text-gray: #666;
+            --text-light: #999;
+            --bg-main: #fff;
+            --bg-gray: #f5f5f5;
+            --bg-light: #fafafa;
+            --border: #e5e5e5;
+            --shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        .theme-black {--primary: #1f2937; --bg-primary-light: #e5e7eb; --text-main: #fff; --bg-main: #111827; --bg-card: #1f2937; --bg-btn-secondary: #374151; --border: #374151; --text-secondary: #d1d5db; --text-gray: #9ca3af;}
-        .theme-white {--primary: #6b7280; --bg-primary-light: #f3f4f6; --text-main: #111827; --bg-main: #ffffff; --bg-card: #f9fafb; --border: #e5e7eb;}
-        .theme-lightblue {--primary: #4299e1; --bg-primary-light: #e8edff;}
-        .theme-red {--primary: #ef4444; --bg-primary-light: #fee2e2;}
-        .theme-lightcyan {--primary: #06b6d4; --bg-primary-light: #e0f2fe;}
+        [data-theme="dark"] {
+            --primary: #54a0ff;
+            --primary-light: #78b9ff;
+            --primary-dark: #2e86de;
+            --text-main: #e5e5e5;
+            --text-gray: #b3b3b3;
+            --text-light: #808080;
+            --bg-main: #1a1a1a;
+            --bg-gray: #262626;
+            --bg-light: #333;
+            --border: #404040;
+            --shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
 
-        body {background: var(--bg-main); min-height: 100vh; padding-bottom: 80px; transition: all 0.3s ease; color: var(--text-main);}
-        .header {background: var(--primary); color: var(--text-white); padding: 15px 20px; text-align: center; font-size: 18px; font-weight: 600; position: fixed; top: 0; left: 0; right: 0; z-index: 99; transition: background 0.3s ease;}
-        .container {margin-top: 60px; padding: 15px;}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
 
-        .user-setting {display: flex; justify-content: space-between; align-items: center; font-size: 14px; margin-bottom: 10px;}
-        .user-info {display: flex; align-items: center; gap: 8px; color: var(--text-secondary);}
-        .logout-btn {background: none; border: none; color: var(--primary); cursor: pointer; font-size: 14px; padding: 2px 4px;}
-        .theme-set {display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--primary); font-size: 14px;}
-        .theme-icon {font-size: 16px;}
+        body {
+            background-color: var(--bg-gray);
+            color: var(--text-main);
+            transition: background-color 0.3s, color 0.3s;
+            min-height: 100vh;
+        }
 
-        .tab-bar {display: flex; background: var(--bg-card); border-radius: 8px; overflow: hidden; margin-bottom: 15px; border: 1px solid var(--border);}
-        .tab-item {flex: 1; text-align: center; padding: 12px 0; font-size: 16px; color: var(--text-main); border: none; background: none; cursor: pointer; transition: all 0.2s ease;}
-        .tab-item.active {background: var(--primary); color: var(--text-white);}
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
 
-        .input-box {background: var(--bg-card); border-radius: 8px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border);}
-        .result-box {background: var(--bg-card); border-radius: 8px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border);}
-        .form-item {margin-bottom: 12px;}
-        .form-item label {font-size: 14px; color: var(--text-secondary); margin-bottom: 5px; display: block;}
-        .form-item input, .form-item select, .form-item textarea {width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 15px; resize: none; background: var(--bg-card); color: var(--text-main); transition: all 0.2s ease;}
-        .form-item textarea {min-height: 100px;}
-        .form-item input:focus, .form-item select:focus, .form-item textarea:focus {outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px var(--bg-primary-light);}
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
 
-        .btn-group {display: flex; gap: 10px; margin-bottom: 15px;}
-        .btn {flex: 1; padding: 12px 0; border: none; border-radius: 6px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;}
-        .btn-primary {background: var(--primary); color: var(--text-white);}
-        .btn-primary:hover {opacity: 0.9;}
-        .btn-secondary {background: var(--bg-btn-secondary); color: var(--primary); border: 1px solid var(--primary);}
-        .btn-secondary:hover {background: var(--bg-primary-light);}
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-        .result-title {font-size: 14px; color: var(--text-secondary); margin-bottom: 10px; display: flex; justify-content: space-between;}
-        .result-content {font-size: 15px; color: var(--text-main); line-height: 1.6; min-height: 80px; white-space: pre-wrap;}
-        .ai-tag {font-size: 12px; color: var(--text-gray); margin-top: 10px; text-align: right;}
+        .logo i {
+            font-size: 28px;
+        }
 
-        .count-tip {font-size: 14px; text-align: center; margin-bottom: 10px; padding: 8px 0; border-radius: 6px;}
-        .count-tip.default {color: var(--text-secondary); background: #fee2e2; border: 1px solid #fecdd3;}
-        .count-tip.vip {color: var(--primary); background: var(--bg-primary-light); border: 1px solid var(--bg-primary-light);}
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
 
-        .history-list {background: var(--bg-card); border-radius: 8px; padding: 10px; border: 1px solid var(--border);}
-        .history-item {padding: 10px; border-bottom: 1px solid var(--border);}
-        .history-item:last-child {border: none;}
-        .history-time {font-size: 12px; color: var(--text-gray); margin-bottom: 5px;}
-        .history-prompt {font-size: 14px; color: var(--text-secondary); margin-bottom: 5px;}
-        .history-content {font-size: 14px; color: var(--text-main); line-height: 1.5;}
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-        .footer-vip {position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-card); padding: 10px 15px; border-top: 1px solid var(--border); text-align: center; transition: all 0.3s ease;}
-        .vip-btn {background: var(--vip-color); color: var(--text-white); border: none; padding: 10px 30px; border-radius: 20px; font-size: 16px; cursor: pointer; transition: all 0.2s ease;}
-        .vip-btn:hover {opacity: 0.9;}
+        .vip-tag {
+            background-color: var(--warning);
+            color: white;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
 
-        .hide {display: none !important;}
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-        .vip-modal {position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; display: flex; align-items: center; justify-content: center;}
-        .vip-modal-content {width: 90%; max-width: 400px; background: var(--bg-card); border-radius: 12px; padding: 20px; border: 1px solid var(--border);}
-        .vip-modal-title {font-size: 18px; font-weight: 600; text-align: center; margin-bottom: 20px; color: var(--primary);}
-        .vip-package-list {margin-bottom: 20px;}
-        .vip-package-item {border: 2px solid var(--border); border-radius: 8px; padding: 15px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s ease;}
-        .vip-package-item.active {border-color: var(--vip-color); background: var(--bg-vip-light);}
-        .package-name {font-size: 16px; font-weight: 600; color: var(--text-main); margin-bottom: 5px;}
-        .package-price {font-size: 20px; color: var(--text-vip); font-weight: 700;}
-        .package-desc {font-size: 12px; color: var(--text-gray); margin-top: 5px;}
-        .vip-pay-btn {width: 100%; background: var(--vip-color); color: var(--text-white); border: none; padding: 15px 0; border-radius: 8px; font-size: 18px; font-weight: 600; cursor: pointer; margin-bottom: 10px;}
-        .vip-close-btn {width: 100%; background: var(--bg-btn-secondary); color: var(--text-secondary); border: 1px solid var(--border); padding: 10px 0; border-radius: 8px; font-size: 16px; cursor: pointer;}
-        .vip-status {font-size: 14px; color: var(--text-secondary); text-align: center; margin-top: 10px;}
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
 
-        .auth-modal {position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;}
-        .auth-modal-content {width: 90%; max-width: 400px; background: var(--bg-card); border-radius: 12px; padding: 20px; border: 1px solid var(--border);}
-        .auth-tabs {display: flex; margin-bottom: 20px;}
-        .auth-tab {flex: 1; text-align: center; padding: 10px 0; font-size: 16px; cursor: pointer; color: var(--text-secondary); transition: all 0.2s ease;}
-        .auth-tab.active {color: var(--primary); border-bottom: 2px solid var(--primary);}
-        .auth-form {display: none;}
-        .auth-form.active {display: block;}
-        .auth-btn {width: 100%; background: var(--primary); color: var(--text-white); border: none; padding: 12px 0; border-radius: 8px; font-size: 16px; margin-top: 10px; cursor: pointer;}
-        .auth-status {font-size: 14px; color: #ef4444; text-align: center; margin-top: 10px;}
+        .btn-primary:hover {
+            background-color: var(--primary-light);
+        }
 
-        .theme-modal {position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1001; display: flex; align-items: center; justify-content: center;}
-        .theme-modal-content {width: 90%; max-width: 380px; background: var(--bg-card); border-radius: 12px; padding: 25px 20px; border: 1px solid var(--border);}
-        .theme-modal-title {font-size: 18px; font-weight: 600; color: var(--text-main); margin-bottom: 20px; text-align: center;}
-        .theme-custom {display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border);}
-        .theme-custom label {font-size: 14px; color: var(--text-secondary);}
-        .color-picker {width: 40px; height: 40px; border: none; border-radius: 50%; cursor: pointer; background: transparent;}
-        .color-picker::-webkit-color-swatch-wrapper {padding: 0;}
-        .color-picker::-webkit-color-swatch {border: 2px solid var(--border); border-radius: 50%;}
-        .theme-preset {margin-bottom: 20px;}
-        .theme-preset-title {font-size: 14px; color: var(--text-secondary); margin-bottom: 15px;}
-        .theme-list {display: flex; flex-wrap: wrap; justify-content: space-around; gap: 12px;}
-        .theme-item {width: 50px; height: 50px; border-radius: 50%; cursor: pointer; border: 3px solid var(--border); transition: all 0.2s ease;}
-        .theme-item.active {border-color: var(--primary); box-shadow: 0 0 0 2px var(--bg-primary-light);}
-        .theme-black-item {background: #1f2937;}
-        .theme-white-item {background: #6b7280;}
-        .theme-lightblue-item {background: #4299e1;}
-        .theme-red-item {background: #ef4444;}
-        .theme-lightcyan-item {background: #06b6d4;}
-        .theme-confirm-btn {width: 100%; background: var(--primary); color: var(--text-white); border: none; padding: 12px 0; border-radius: 8px; font-size: 16px; cursor: pointer;}
+        .btn-primary:active {
+            background-color: var(--primary-dark);
+        }
 
-        .log-modal {position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1002; display: flex; align-items: center; justify-content: center;}
-        .log-modal-content {width: 90%; max-width: 400px; background: var(--bg-card); border-radius: 12px; padding: 20px; max-height: 80vh; overflow-y: auto;}
-        .log-modal-title {font-size: 18px; font-weight: 600; margin-bottom: 15px; color: var(--text-main); display: flex; justify-content: space-between; align-items: center;}
-        .log-close-btn {background: none; border: none; color: var(--text-gray); font-size: 20px; cursor: pointer;}
-        .log-content {font-size: 12px; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap; max-height: 60vh; overflow-y: auto; padding: 10px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 15px;}
-        .log-export-action {display: flex; gap: 10px;}
-        .log-export-action button {flex: 1; padding: 10px 0; border-radius: 6px; border: none; font-size: 14px; cursor: pointer;}
-        .log-clear-btn {background: #ef4444; color: white;}
-        .log-save-btn {background: var(--primary); color: white;}
-        
-        /* 日志导出按钮样式 */
-        #logExportBtn {
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary-light);
+            color: white;
+        }
+
+        .btn-text {
+            background-color: transparent;
+            color: var(--primary);
+        }
+
+        .btn-text:hover {
+            background-color: var(--bg-light);
+        }
+
+        .card {
+            background-color: var(--bg-main);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .form-item {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(64, 150, 255, 0.2);
+        }
+
+        .select-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            font-size: 14px;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 20px;
+        }
+
+        .col-8 {
+            grid-column: span 8;
+        }
+
+        .col-4 {
+            grid-column: span 4;
+        }
+
+        .tab-header {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .tab-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .tab-item.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .tab-item:hover {
+            color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .result-box {
+            width: 100%;
+            min-height: 200px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 12px;
+            background-color: var(--bg-light);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin-top: 16px;
+        }
+
+        .history-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 8px;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-time {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 4px;
+        }
+
+        .history-prompt {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .history-content {
+            font-size: 14px;
+            color: var(--text-gray);
+            max-height: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .modal {
             position: fixed;
-            bottom: 90px;
-            right: 15px;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            width: 400px;
+            background-color: var(--bg-main);
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+        }
+
+        .modal-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-btn {
+            cursor: pointer;
+            font-size: 20px;
+            color: var(--text-light);
+        }
+
+        .close-btn:hover {
+            color: var(--text-main);
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 16px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .auth-tab.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .auth-content {
+            display: none;
+        }
+
+        .auth-content.active {
+            display: block;
+        }
+
+        .status-text {
+            font-size: 12px;
+            margin-top: 8px;
+            height: 16px;
+            line-height: 16px;
+        }
+
+        .status-error {
+            color: var(--error);
+        }
+
+        .status-success {
+            color: var(--success);
+        }
+
+        .hide {
+            display: none !important;
+        }
+
+        .vip-package-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .vip-package-item {
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .vip-package-item.active {
+            border-color: var(--primary);
+            background-color: rgba(64, 150, 255, 0.1);
+        }
+
+        .vip-package-item:hover {
+            border-color: var(--primary-light);
+        }
+
+        .package-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .package-price {
+            color: var(--primary);
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .package-desc {
+            font-size: 12px;
+            color: var(--text-gray);
+        }
+
+        .logger-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: var(--primary);
+            background-color: var(--primary);
             color: white;
-            border: none;
-            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            z-index: 90;
+            box-shadow: var(--shadow);
+            z-index: 999;
+        }
+
+        .logger-panel {
+            position: fixed;
+            bottom: 70px;
+            right: 20px;
+            width: 400px;
+            height: 300px;
+            background-color: var(--bg-main);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 12px;
+            overflow-y: auto;
+            z-index: 999;
+            display: none;
+        }
+
+        .logger-panel.show {
+            display: block;
+        }
+
+        .logger-item {
+            font-size: 12px;
+            margin-bottom: 4px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logger-time {
+            color: var(--text-light);
+        }
+
+        .logger-type {
+            display: inline-block;
+            padding: 0 4px;
+            border-radius: 2px;
+            margin: 0 4px;
+            font-size: 10px;
+        }
+
+        .logger-type-info {
+            background-color: #e6f4ff;
+            color: #1890ff;
+        }
+
+        .logger-type-error {
+            background-color: #fff2f0;
+            color: #ff4d4f;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .col-8, .col-4 {
+                grid-column: span 12;
+            }
+
+            .modal-content {
+                width: 90%;
+            }
+
+            .logger-panel {
+                width: 90%;
+            }
         }
     </style>
+    <!-- 引入图标库 -->
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body id="appBody" class="theme-lightblue">
-    <div class="header">AI内容创作工具</div>
-
+<body>
     <div class="container">
-        <div class="user-setting hide" id="userSetting">
-            <div class="user-info">
-                欢迎，<span id="username"></span>
-                <button class="logout-btn" id="logoutBtn">退出</button>
+        <!-- 头部 -->
+        <header>
+            <div class="logo">
+                <i class="fas fa-robot"></i>
+                <span>AI创作助手</span>
             </div>
-            <div class="theme-set" id="themeSet">
-                <span class="theme-icon">🎨</span>
-                <span>主题设置</span>
+            <div class="header-right">
+                <div class="user-info hide" id="userInfo">
+                    <span id="username"></span>
+                    <span class="vip-tag hide" id="vipTag">VIP</span>
+                </div>
+                <button class="btn btn-outline" id="loginBtn" onclick="showAuthModal('login')">登录</button>
+                <button class="btn btn-primary hide" id="logoutBtn">退出登录</button>
+                <button class="btn btn-text" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="btn btn-outline" id="vipBtn">开通会员</button>
+            </div>
+        </header>
+
+        <!-- 未登录提示 -->
+        <div id="unloginTip" class="card">
+            <div style="text-align: center; padding: 40px 0;">
+                <i class="fas fa-lock" style="font-size: 48px; color: var(--text-light); margin-bottom: 16px;"></i>
+                <h3>请先登录后使用</h3>
+                <p style="color: var(--text-gray); margin: 8px 0 16px;">登录后可使用AI创作、保存历史记录等功能</p>
+                <button class="btn btn-primary" onclick="showAuthModal('login')">立即登录</button>
             </div>
         </div>
 
-        <div class="count-tip default hide" id="countTip">今日免费生成次数：3次</div>
-        <div class="count-tip vip hide" id="vipStatusTip">✅ 当前为月会员，有效期至2026-12-31，无限制生成</div>
+        <!-- 主内容区（登录后显示） -->
+        <div id="mainContent" class="hide">
+            <div class="grid">
+                <!-- 创作区 -->
+                <div class="col-8">
+                    <div class="card">
+                        <div class="card-header">AI创作</div>
+                        <div class="tab-header">
+                            <div class="tab-item active" data-tab="shortVideo">短视频创作</div>
+                            <div class="tab-item" data-tab="office">办公创作</div>
+                        </div>
+                        <!-- 短视频创作 -->
+                        <div class="tab-content active" id="shortVideoTab">
+                            <div class="form-item">
+                                <label class="form-label">平台选择</label>
+                                <select class="select-control" id="svPlatform">
+                                    <option value="douyin">抖音</option>
+                                    <option value="kuaishou">快手</option>
+                                    <option value="video号">视频号</option>
+                                    <option value="小红书">小红书</option>
+                                </select>
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">创作风格</label>
+                                <select class="select-control" id="svTone">
+                                    <option value="humorous">幽默搞笑</option>
+                                    <option value="emotional">情感共鸣</option>
+                                    <option value="knowledge">知识科普</option>
+                                    <option value="marketing">带货营销</option>
+                                    <option value="daily">日常记录</option>
+                                </select>
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">创作需求</label>
+                                <textarea class="form-control" id="svPrompt" rows="4" placeholder="请输入您的创作需求，例如：生成一个关于春季护肤的短视频文案..."></textarea>
+                            </div>
+                            <button class="btn btn-primary" id="svCreate">
+                                <i class="fas fa-magic"></i> 生成内容
+                            </button>
+                            <div class="result-box" id="svResult"></div>
+                        </div>
+                        <!-- 办公创作 -->
+                        <div class="tab-content" id="officeTab">
+                            <div class="form-item">
+                                <label class="form-label">创作风格</label>
+                                <select class="select-control" id="ofTone">
+                                    <option value="formal">正式严谨</option>
+                                    <option value="simple">简洁明了</option>
+                                    <option value="persuasive">说服性强</option>
+                                    <option value="creative">创意新颖</option>
+                                </select>
+                            </div>
+                            <div class="form-item">
+                                <label class="form-label">创作需求</label>
+                                <textarea class="form-control" id="ofPrompt" rows="4" placeholder="请输入您的创作需求，例如：写一篇产品推广的邮件..."></textarea>
+                            </div>
+                            <button class="btn btn-primary" id="ofCreate">
+                                <i class="fas fa-magic"></i> 生成内容
+                            </button>
+                            <div class="result-box" id="ofResult"></div>
+                        </div>
+                    </div>
+                </div>
 
-        <div class="tab-bar hide" id="mainTabBar">
-            <button class="tab-item active" data-tab="shortVideo">短/长视频创作</button>
-            <button class="tab-item" data-tab="office">办公创作</button>
-            <button class="tab-item" data-tab="history">历史记录</button>
-        </div>
+                <!-- 侧边栏 -->
+                <div class="col-4">
+                    <!-- 历史记录 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span>创作历史</span>
+                            <button class="btn btn-text" style="float: right; padding: 0;" id="refreshHistory">
+                                <i class="fas fa-refresh"></i> 刷新
+                            </button>
+                        </div>
+                        <div id="historyList">
+                            <div style="text-align:center; color:var(--text-gray); padding:20px 0;">暂无生成记录，快去创作吧~</div>
+                        </div>
+                    </div>
 
-        <div class="tab-content hide" id="shortVideo">
-            <div class="input-box">
-                <div class="form-item">
-                    <label>发布平台</label>
-                    <select id="svPlatform">
-                        <option value="抖音">抖音</option>
-                        <option value="小红书">小红书</option>
-                        <option value="视频号">视频号</option>
-                        <option value="bilibili">bilibili</option>
-                    </select>
+                    <!-- 会员提示 -->
+                    <div class="card">
+                        <div class="card-header">会员特权</div>
+                        <div style="padding: 16px 0;">
+                            <ul style="padding-left: 20px; color: var(--text-gray); line-height: 1.8;">
+                                <li>无限制创作次数</li>
+                                <li>更多创作风格选择</li>
+                                <li>更长的创作内容</li>
+                                <li>优先使用新功能</li>
+                            </ul>
+                            <button class="btn btn-primary" style="width: 100%; margin-top: 16px;" id="openVipBtn">立即开通</button>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-item">
-                    <label>内容调性</label>
-                    <select id="svTone">
-                        <option value="带货">带货</option>
-                        <option value="干货">干货</option>
-                        <option value="搞笑">搞笑</option>
-                        <option value="情感">情感</option>
-                        <option value="温柔">温柔</option>
-                    </select>
-                </div>
-                <div class="form-item">
-                    <div>输入创作需求（如：抖音美妆带货标题、15秒探店脚本）</div>
-                    <label>温馨提示：填入创作内容的相关信息以保证生成内容完美适配</label>
-                    <textarea id="svPrompt" placeholder="请输入你的创作需求..."></textarea>
-                </div>
-            </div>
-            <div class="btn-group">
-                <button class="btn btn-secondary" id="svVoice">语音输入</button>
-                <button class="btn btn-primary" id="svCreate">一键生成</button>
-            </div>
-            <div class="result-box">
-                <div class="result-title">生成结果</div>
-                <div class="result-content" id="svResult"></div>
-                <div class="ai-tag">AI生成内容，请勿用于违规场景</div>
-                <button class="btn btn-secondary" style="width:100%; margin-top:10px;" id="svCopy">复制内容</button>
-            </div>
-        </div>
-
-        <div class="tab-content hide" id="office">
-            <div class="input-box">
-                <div class="form-item">
-                    <label>内容调性</label>
-                    <select id="ofTone">
-                        <option value="正式">正式</option>
-                        <option value="简洁">简洁</option>
-                        <option value="商务">商务</option>
-                    </select>
-                </div>
-                <div class="form-item">
-                    <label>输入创作需求（如：运营周报、工作汇报、商务邮件）</label>
-                    <textarea id="ofPrompt" placeholder="请输入你的创作需求..."></textarea>
-                </div>
-            </div>
-            <div class="btn-group">
-                <button class="btn btn-secondary" id="ofVoice">语音输入</button>
-                <button class="btn btn-primary" id="ofCreate">一键生成</button>
-            </div>
-            <div class="result-box">
-                <div class="result-title">生成结果</div>
-                <div class="result-content" id="ofResult"></div>
-                <div class="ai-tag">AI生成内容，请勿用于违规场景</div>
-                <button class="btn btn-secondary" style="width:100%; margin-top:10px;" id="ofCopy">复制内容</button>
-            </div>
-        </div>
-
-        <div class="tab-content hide" id="history">
-            <div class="history-list" id="historyList">
-                <div style="text-align:center; color:var(--text-gray); padding:20px 0;">暂无生成记录，快去创作吧~</div>
             </div>
         </div>
     </div>
 
-    <div class="footer-vip hide" id="footerVip">
-        <button class="vip-btn" id="vipBtn">开通会员 | 无限制生成</button>
-    </div>
-
-    <div class="vip-modal hide" id="vipModal">
-        <div class="vip-modal-content modal-inner">
-            <div class="vip-modal-title">开通VIP会员</div>
-            <div class="vip-package-list" id="vipPackageList">
-                <!-- 会员套餐列表（动态生成） -->
-                <div class="vip-package-item active" data-package-id="1">
-                    <div class="package-name">月会员</div>
-                    <div class="package-price">¥19.9/月</div>
-                    <div class="package-desc">无限制生成，每月更新</div>
-                </div>
-                <div class="vip-package-item" data-package-id="2">
-                    <div class="package-name">季会员</div>
-                    <div class="package-price">¥49.9/季</div>
-                    <div class="package-desc">无限制生成，立省9.8元</div>
-                </div>
-                <div class="vip-package-item" data-package-id="3">
-                    <div class="package-name">年会员</div>
-                    <div class="package-price">¥159/年</div>
-                    <div class="package-desc">无限制生成，立省79.8元</div>
-                </div>
+    <!-- 登录/注册弹窗 -->
+    <div class="modal hide" id="authModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>用户登录</span>
+                <span class="close-btn" onclick="hideAuthModal()">&times;</span>
             </div>
-            <button class="vip-pay-btn" id="vipPayBtn">立即支付</button>
-            <button class="vip-close-btn" id="vipCloseBtn">关闭</button>
-            <div class="vip-status" id="vipPayStatus"></div>
-        </div>
-    </div>
-
-    <div class="auth-modal hide" id="authModal">
-        <div class="auth-modal-content modal-inner">
             <div class="auth-tabs">
-                <div class="auth-tab active" data-tab="login">登录</div>
-                <div class="auth-tab" data-tab="register">注册</div>
+                <div class="auth-tab active" data-auth-tab="login" onclick="switchAuthTab('login')">登录</div>
+                <div class="auth-tab" data-auth-tab="register" onclick="switchAuthTab('register')">注册</div>
             </div>
-            <div class="auth-form active" id="loginForm">
+            <!-- 登录表单 -->
+            <div class="auth-content active" id="loginForm">
                 <div class="form-item">
-                    <label>用户名</label>
-                    <input type="text" id="loginUsername" placeholder="请输入用户名">
+                    <label class="form-label">用户名</label>
+                    <input type="text" class="form-control" id="loginUsername" placeholder="请输入用户名">
                 </div>
                 <div class="form-item">
-                    <label>密码</label>
-                    <input type="password" id="loginPassword" placeholder="请输入密码">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-control" id="loginPassword" placeholder="请输入密码">
                 </div>
-                <button class="auth-btn" id="loginBtn">登录</button>
-                <div class="auth-status" id="loginStatus"></div>
+                <button class="btn btn-primary" style="width: 100%;" id="loginSubmit">登录</button>
+                <div class="status-text" id="loginStatus"></div>
             </div>
-            <div class="auth-form" id="registerForm">
+            <!-- 注册表单 -->
+            <div class="auth-content" id="registerForm">
                 <div class="form-item">
-                    <label>用户名</label>
-                    <input type="text" id="regUsername" placeholder="请输入用户名">
+                    <label class="form-label">用户名</label>
+                    <input type="text" class="form-control" id="regUsername" placeholder="请输入用户名">
                 </div>
                 <div class="form-item">
-                    <label>密码</label>
-                    <input type="password" id="regPassword" placeholder="请输入密码">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="form-control" id="regPassword" placeholder="请输入密码">
                 </div>
                 <div class="form-item">
-                    <label>手机号（选填）</label>
-                    <input type="tel" id="regPhone" placeholder="请输入手机号">
+                    <label class="form-label">手机号（选填）</label>
+                    <input type="tel" class="form-control" id="regPhone" placeholder="请输入手机号">
                 </div>
-                <button class="auth-btn" id="registerBtn">注册</button>
-                <div class="auth-status" id="registerStatus"></div>
+                <button class="btn btn-primary" style="width: 100%;" id="registerSubmit">注册</button>
+                <div class="status-text" id="registerStatus"></div>
             </div>
         </div>
     </div>
 
-    <div class="theme-modal hide" id="themeModal">
-        <div class="theme-modal-content modal-inner">
-            <div class="theme-modal-title">自定义主题色</div>
-            <div class="theme-custom">
-                <label for="colorPicker">手动选择：</label>
-                <input type="color" id="colorPicker" class="color-picker" value="#4299e1">
+    <!-- 会员开通弹窗 -->
+    <div class="modal hide" id="vipModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>开通会员</span>
+                <span class="close-btn" onclick="hideVipModal()">&times;</span>
             </div>
-            <div class="theme-preset">
-                <div class="theme-preset-title">预设颜色（点击选择）</div>
-                <div class="theme-list">
-                    <div class="theme-item theme-black-item" data-theme="theme-black" title="黑色"></div>
-                    <div class="theme-item theme-white-item" data-theme="theme-white" title="白色"></div>
-                    <div class="theme-item theme-lightblue-item active" data-theme="theme-lightblue" title="浅蓝"></div>
-                    <div class="theme-item theme-red-item" data-theme="theme-red" title="红色"></div>
-                    <div class="theme-item theme-lightcyan-item" data-theme="theme-lightcyan" title="淡青色"></div>
-                </div>
+            <div class="vip-package-list" id="vipPackageList">
+                <!-- 会员套餐会通过JS动态加载 -->
             </div>
-            <button class="theme-confirm-btn" id="themeConfirmBtn">确认应用</button>
+            <button class="btn btn-primary" style="width: 100%;" id="vipPayBtn">立即支付</button>
+            <div class="status-text" id="vipPayStatus"></div>
         </div>
     </div>
 
-    <div class="log-modal hide" id="logModal">
-        <div class="log-modal-content modal-inner">
-            <div class="log-modal-title">
-                <span>客户端日志</span>
-                <button class="log-close-btn" id="logCloseBtn">×</button>
-            </div>
-            <div class="log-content" id="logContent"></div>
-            <div class="log-export-action">
-                <button class="log-clear-btn" id="logClearBtn">清空日志</button>
-                <button class="log-save-btn" id="logSaveBtn">导出日志</button>
-            </div>
-        </div>
+    <!-- 日志按钮和面板 -->
+    <div class="logger-btn" id="loggerBtn">
+        <i class="fas fa-file-alt"></i>
     </div>
-
-    <button class="log-export-btn hide" id="logExportBtn">📝</button>
+    <div class="logger-panel" id="loggerPanel"></div>
 
     <script>
-        // 日志工具类
-        class ClientLogger {
-            constructor() {
-                this.LOG_STORAGE_KEY = 'ai_creator_client_logs';
-                this.MAX_LOG_COUNT = 1000;
-                this.logs = this.loadLogs();
-            }
-
-            loadLogs() {
-                try {
-                    const logsStr = localStorage.getItem(this.LOG_STORAGE_KEY);
-                    return logsStr ? JSON.parse(logsStr) : [];
-                } catch (e) {
-                    console.error('加载日志失败：', e);
-                    return [];
-                }
-            }
-
-            saveLogs() {
-                try {
-                    if (this.logs.length > this.MAX_LOG_COUNT) {
-                        this.logs = this.logs.slice(-this.MAX_LOG_COUNT); // 保留最新1000条
-                    }
-                    localStorage.setItem(this.LOG_STORAGE_KEY, JSON.stringify(this.logs));
-                } catch (e) {
-                    console.error('保存日志失败：', e);
-                }
-            }
-
-            getTimestamp() {
-                // 手动格式化时间戳，兼容所有浏览器
-                const now = new Date();
-                const pad = n => n.toString().padStart(2, '0');
-                return `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-            }
-
-            log(level, module, message, data = null) {
-                const logItem = {
-                    time: this.getTimestamp(),
-                    level: level,
-                    module: module,
-                    message: message,
-                    data: data
-                };
-                
-                this.logs.push(logItem);
-                this.saveLogs();
-                
-                const logStr = `[${logItem.time}] [${level}] [${module}] ${message}`;
-                switch (level) {
-                    case 'ERROR':
-                        console.error(logStr, data || '');
-                        break;
-                    case 'WARN':
-                        console.warn(logStr, data || '');
-                        break;
-                    default:
-                        console.log(logStr, data || '');
-                }
-            }
-
-            info(module, message, data = null) {
-                this.log('INFO', module, message, data);
-            }
-
-            warn(module, message, data = null) {
-                this.log('WARN', module, message, data);
-            }
-
-            error(module, message, data = null) {
-                this.log('ERROR', module, message, data);
-            }
-
-            getFormattedLogs() {
-                // 修复：logItem.module 而非全局module
-                return this.logs.map(item => {
-                    let dataStr = item.data ? JSON.stringify(item.data, null, 2) : '';
-                    return `[${item.time}] [${item.level}] [${item.module}] ${item.message} ${dataStr}`;
-                }).join('\n');
-            }
-
-            clearLogs() {
-                this.logs = [];
-                localStorage.removeItem(this.LOG_STORAGE_KEY);
-                this.info('日志工具', '日志已清空');
-            }
-
-            exportLogs() {
-                const logText = this.getFormattedLogs();
-                const blob = new Blob([logText], { type: 'text/plain;charset=utf-8' });
-                const url = URL.createObjectURL(blob);
-                
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `ai_creator_client_${new Date().getTime()}.log`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                
-                this.info('日志工具', '日志导出成功');
-            }
-        }
-
         // 全局变量
         let userInfo = null;
         let isVip = false;
-        let selectedTheme = "theme-lightblue";
-        let customPrimaryColor = "#4299e1";
-        let selectedPackageId = 1;
-        let recognition = null; // 全局语音识别实例，避免重复创建
-        const logger = new ClientLogger();
-
-        // 页面加载
-        window.onload = function() {
-            logger.info('应用初始化', '页面开始加载');
-            initApp();
-        };
-
-        // 初始化应用
-        function initApp() {
-            try {
-                // 先清空可能的旧数据，避免解析错误
-                fixOldStorageData();
+        let selectedPackageId = '';
+        const logger = new (class ClientLogger {
+            constructor() {
+                this.logs = [];
+                this.panel = document.getElementById('loggerPanel');
+                this.btn = document.getElementById('loggerBtn');
                 
-                loadLocalTheme();
-                autoLogin();
-                bindAllEvents();
-                
-                if (userInfo) {
-                    const logBtn = document.getElementById("logExportBtn");
-                    if (logBtn) logBtn.classList.remove("hide");
-                }
-                
-                logger.info('应用初始化', '初始化完成');
-            } catch (e) {
-                logger.error('应用初始化', '初始化失败', e);
-                // 强制显示登录弹窗
-                const authModal = document.getElementById("authModal");
-                if (authModal) authModal.classList.remove("hide");
+                this.btn.addEventListener('click', () => {
+                    this.panel.classList.toggle('show');
+                });
             }
-        }
 
-        // 修复旧的存储数据
-        function fixOldStorageData() {
-            try {
-                // 检查并修复主题数据
-                const themeData = localStorage.getItem("ai_creator_theme");
-                if (themeData) {
-                    try {
-                        JSON.parse(themeData);
-                    } catch (e) {
-                        // 旧数据是字符串，转为新格式
-                        localStorage.setItem("ai_creator_theme", JSON.stringify({
-                            preset: themeData,
-                            customColor: "#4299e1"
-                        }));
-                        logger.warn('数据修复', '修复旧主题数据', themeData);
-                    }
-                }
-                
-                // 检查用户数据
-                const userData = localStorage.getItem("ai_creator_user");
-                if (userData) {
-                    try {
-                        JSON.parse(userData);
-                    } catch (e) {
-                        localStorage.removeItem("ai_creator_user");
-                        logger.warn('数据修复', '删除损坏的用户数据');
-                    }
-                }
-            } catch (e) {
-                logger.error('数据修复', '修复失败', e);
-            }
-        }
-
-        // 自动登录
-        function autoLogin() {
-            try {
-                const savedUser = localStorage.getItem("ai_creator_user");
-                const authModal = document.getElementById("authModal");
-                
-                if (savedUser) {
-                    try {
-                        userInfo = JSON.parse(savedUser);
-                        // 校验用户信息完整性
-                        if (!userInfo.user_id || !userInfo.username) {
-                            throw new Error("用户信息不完整");
-                        }
-                        if (authModal) authModal.classList.add("hide");
-                        showMainUI();
-                        getUserInfo();
-                        logger.info('自动登录', '登录成功', { username: userInfo.username, user_id: userInfo.user_id });
-                    } catch (e) {
-                        localStorage.removeItem("ai_creator_user");
-                        if (authModal) authModal.classList.remove("hide");
-                        logger.error('自动登录', '解析用户信息失败', e);
-                    }
-                } else {
-                    if (authModal) authModal.classList.remove("hide");
-                    logger.info('自动登录', '无本地登录信息，显示登录弹窗');
-                }
-            } catch (e) {
-                logger.error('自动登录', '自动登录异常', e);
-                const authModal = document.getElementById("authModal");
-                if (authModal) authModal.classList.remove("hide");
-            }
-        }
-
-        // 加载本地主题
-        function loadLocalTheme() {
-            try {
-                const savedThemeData = localStorage.getItem("ai_creator_theme");
-                let themeData = {
-                    preset: "theme-lightblue",
-                    customColor: "#4299e1"
+            log(type, module, message, data = null) {
+                const logItem = {
+                    time: new Date().toLocaleString(),
+                    type,
+                    module,
+                    message,
+                    data
                 };
+                this.logs.unshift(logItem);
                 
-                if (savedThemeData) {
-                    try {
-                        themeData = JSON.parse(savedThemeData);
-                    } catch (e) {
-                        logger.warn('主题加载', '兼容旧版主题格式', savedThemeData);
-                        themeData.preset = savedThemeData;
-                        themeData.customColor = "#4299e1";
+                // 限制日志数量
+                if (this.logs.length > 100) {
+                    this.logs.pop();
+                }
+                
+                // 更新日志面板
+                this.renderLogs();
+                
+                // 控制台输出
+                const logFunc = type === 'error' ? console.error : console.log;
+                logFunc(`[${logItem.time}] [${type}] [${module}]`, message, data || '');
+            }
+
+            info(module, message, data = null) {
+                this.log('info', module, message, data);
+            }
+
+            error(module, message, data = null) {
+                this.log('error', module, message, data);
+            }
+
+            renderLogs() {
+                this.panel.innerHTML = '';
+                this.logs.forEach(item => {
+                    const logEl = document.createElement('div');
+                    logEl.className = 'logger-item';
+                    
+                    let typeClass = 'logger-type-info';
+                    let typeText = 'INFO';
+                    if (item.type === 'error') {
+                        typeClass = 'logger-type-error';
+                        typeText = 'ERROR';
                     }
+                    
+                    logEl.innerHTML = `
+                        <span class="logger-time">${item.time}</span>
+                        <span class="logger-type ${typeClass}">${typeText}</span>
+                        <span class="logger-module">[${item.module}]</span>
+                        <span class="logger-message">${item.message}</span>
+                        ${item.data ? `<div class="logger-data">${JSON.stringify(item.data)}</div>` : ''}
+                    `;
+                    
+                    this.panel.appendChild(logEl);
+                });
+            }
+        })();
+
+        // API客户端
+        const apiClient = new (class ApiClient {
+            constructor(baseUrl) {
+                this.baseUrl = baseUrl;
+                this.logger = logger;
+            }
+
+            async request(options) {
+                const { url, method = 'GET', data = {}, headers = {} } = options;
+                const fullUrl = `${this.baseUrl}${url}`;
+
+                try {
+                    this.logger.info('ApiClient', `发起${method}请求`, { url: fullUrl, data });
+                    
+                    const defaultHeaders = {
+                        'Content-Type': 'application/json',
+                        'Authorization': userInfo ? `Bearer ${userInfo.token}` : ''
+                    };
+
+                    const fetchOptions = {
+                        method,
+                        headers: { ...defaultHeaders, ...headers },
+                    };
+
+                    if (method.toUpperCase() !== 'GET') {
+                        fetchOptions.body = JSON.stringify(data);
+                    } else {
+                        const params = new URLSearchParams(data);
+                        fullUrl += `?${params.toString()}`;
+                    }
+
+                    const response = await fetch(fullUrl, fetchOptions);
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(result.message || `请求失败：${response.status}`);
+                    }
+
+                    this.logger.info('ApiClient', `请求成功`, { url: fullUrl, result });
+                    return result;
+
+                } catch (error) {
+                    this.logger.error('ApiClient', `请求失败`, { url: fullUrl, error: error.message });
+                    throw error;
                 }
-                
-                selectedTheme = themeData.preset || "theme-lightblue";
-                customPrimaryColor = themeData.customColor || "#4299e1";
-                
-                applyTheme(selectedTheme, customPrimaryColor);
-                
-                const colorPicker = document.getElementById("colorPicker");
-                if (colorPicker) colorPicker.value = customPrimaryColor;
-                
-                const themeItems = document.querySelectorAll(".theme-item");
-                if (themeItems) {
-                    themeItems.forEach(item => {
-                        item.classList.remove("active");
-                        if (item.dataset.theme === selectedTheme) {
-                            item.classList.add("active");
-                        }
-                    });
+            }
+
+            get(url, data = {}) {
+                return this.request({ url, method: 'GET', data });
+            }
+
+            post(url, data = {}) {
+                return this.request({ url, method: 'POST', data });
+            }
+
+            put(url, data = {}) {
+                return this.request({ url, method: 'PUT', data });
+            }
+
+            delete(url, data = {}) {
+                return this.request({ url, method: 'DELETE', data });
+            }
+        })('https://wangzhan-production.up.railway.app');
+
+        // 初始化函数
+        function init() {
+            logger.info('Init', '应用初始化开始');
+            
+            // 检查本地存储的用户信息
+            checkLoginStatus();
+            
+            // 绑定事件
+            bindEvents();
+            
+            // 加载主题
+            loadTheme();
+            
+            logger.info('Init', '应用初始化完成');
+        }
+
+        // 检查登录状态
+        function checkLoginStatus() {
+            const savedUser = localStorage.getItem('ai_creator_user');
+            if (savedUser) {
+                try {
+                    userInfo = JSON.parse(savedUser);
+                    isVip = userInfo.is_vip || false;
+                    showMainUI();
+                    loadHistory();
+                    logger.info('Auth', '自动登录成功', userInfo);
+                } catch (error) {
+                    logger.error('Auth', '解析用户信息失败', error);
+                    localStorage.removeItem('ai_creator_user');
+                    showUnloginUI();
                 }
-                
-                logger.info('主题加载', '主题加载完成', { selectedTheme, customPrimaryColor });
-            } catch (e) {
-                logger.error('主题加载', '主题加载失败', e);
+            } else {
+                showUnloginUI();
             }
         }
 
-        // 应用主题
-        function applyTheme(presetTheme, customColor) {
-            try {
-                const appBody = document.getElementById("appBody");
-                if (!appBody) return;
-                
-                appBody.classList.remove("theme-black", "theme-white", "theme-lightblue", "theme-red", "theme-lightcyan");
-                appBody.classList.add(presetTheme);
-                
-                if (customColor) {
-                    document.documentElement.style.setProperty('--primary', customColor);
-                    // 修复：正确生成浅色调（添加20%透明度）
-                    const lightColor = customColor + '20';
-                    document.documentElement.style.setProperty('--bg-primary-light', lightColor);
-                }
-                
-                logger.info('主题应用', '主题应用成功', { presetTheme, customColor });
-            } catch (e) {
-                logger.error('主题应用', '主题应用失败', e);
-            }
-        }
-
-        // 保存主题
-        function saveTheme(presetTheme, customColor) {
-            try {
-                const themeData = {
-                    preset: presetTheme,
-                    customColor: customColor
-                };
-                localStorage.setItem("ai_creator_theme", JSON.stringify(themeData));
-                selectedTheme = presetTheme;
-                customPrimaryColor = customColor;
-                logger.info('主题保存', '主题保存成功', themeData);
-            } catch (e) {
-                logger.error('主题保存', '主题保存失败', e);
-            }
+        // 显示未登录界面
+        function showUnloginUI() {
+            document.getElementById('unloginTip').classList.remove('hide');
+            document.getElementById('mainContent').classList.add('hide');
+            document.getElementById('loginBtn').classList.remove('hide');
+            document.getElementById('logoutBtn').classList.add('hide');
+            document.getElementById('userInfo').classList.add('hide');
         }
 
         // 显示主界面
         function showMainUI() {
-            try {
-                const userSetting = document.getElementById("userSetting");
-                const username = document.getElementById("username");
-                const mainTabBar = document.getElementById("mainTabBar");
-                const footerVip = document.getElementById("footerVip");
-                const shortVideo = document.getElementById("shortVideo");
-                const countTip = document.getElementById("countTip");
-                const vipStatusTip = document.getElementById("vipStatusTip");
-                
-                if (userSetting) userSetting.classList.remove("hide");
-                if (username) username.innerText = userInfo.username || "用户";
-                if (mainTabBar) mainTabBar.classList.remove("hide");
-                if (footerVip) footerVip.classList.remove("hide");
-                if (shortVideo) shortVideo.classList.remove("hide");
-                
-                // 显示次数提示/VIP提示
-                if (isVip) {
-                    if (vipStatusTip) vipStatusTip.classList.remove("hide");
-                    if (countTip) countTip.classList.add("hide");
-                } else {
-                    if (countTip) countTip.classList.remove("hide");
-                    if (vipStatusTip) vipStatusTip.classList.add("hide");
-                }
-                
-                getVipPackages();
-                loadHistory(); // 加载历史记录
-                logger.info('主界面', '主界面显示成功', { username: userInfo.username });
-            } catch (e) {
-                logger.error('主界面', '主界面显示失败', e);
+            document.getElementById('unloginTip').classList.add('hide');
+            document.getElementById('mainContent').classList.remove('hide');
+            document.getElementById('loginBtn').classList.add('hide');
+            document.getElementById('logoutBtn').classList.remove('hide');
+            document.getElementById('userInfo').classList.remove('hide');
+            
+            // 更新用户信息
+            document.getElementById('username').textContent = userInfo.username;
+            if (isVip) {
+                document.getElementById('vipTag').classList.remove('hide');
+            } else {
+                document.getElementById('vipTag').classList.add('hide');
             }
         }
 
         // 绑定所有事件
-        function bindAllEvents() {
-            try {
-                bindAuthTabEvent();
-                bindAuthBtnEvent();
-                bindLogoutEvent();
-                bindTabEvent();
-                bindCreateEvent();
-                bindVoiceEvent();
-                bindCopyEvent();
-                bindVipEvent();
-                bindCloseBtnEvent();
-                bindThemeEvent();
-                bindLogEvents();
-                
-                logger.info('事件绑定', '所有事件绑定完成');
-            } catch (e) {
-                logger.error('事件绑定', '事件绑定失败', e);
-            }
+        function bindEvents() {
+            // 标签切换
+            bindTabEvents();
+            
+            // 认证相关
+            bindAuthEvents();
+            
+            // 创作相关
+            bindCreateEvents();
+            
+            // 历史记录
+            bindHistoryEvents();
+            
+            // 会员相关
+            bindVipEvents();
+            
+            // 主题切换
+            bindThemeEvent();
+            
+            // 退出登录
+            document.getElementById('logoutBtn').addEventListener('click', logout);
         }
 
-        // 绑定登录/注册标签事件
-        function bindAuthTabEvent() {
-            const authTabs = document.querySelectorAll(".auth-tab");
-            const authForms = document.querySelectorAll(".auth-form");
-            
-            if (!authTabs || !authForms) return;
-            
-            authTabs.forEach(tab => {
-                tab.onclick = function() {
-                    authTabs.forEach(t => t.classList.remove("active"));
-                    this.classList.add("active");
-                    const tabName = this.dataset.tab;
-                    authForms.forEach(f => f.classList.remove("active"));
+        // 标签切换事件
+        function bindTabEvents() {
+            const tabItems = document.querySelectorAll('.tab-item');
+            tabItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    // 移除所有激活状态
+                    tabItems.forEach(i => i.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                     
-                    const form = document.getElementById(`${tabName}Form`);
-                    const status = document.getElementById(`${tabName}Status`);
-                    
-                    if (form) form.classList.add("active");
-                    if (status) status.innerText = "";
-                }
+                    // 添加当前激活状态
+                    item.classList.add('active');
+                    const tabId = item.dataset.tab + 'Tab';
+                    document.getElementById(tabId).classList.add('active');
+                });
             });
         }
 
-        // 绑定登录/注册按钮事件
-        function bindAuthBtnEvent() {
-            // 登录按钮
-            const loginBtn = document.getElementById("loginBtn");
-            if (loginBtn) {
-                loginBtn.onclick = function() {
-                    try {
-                        const username = document.getElementById("loginUsername")?.value.trim() || '';
-                        const password = document.getElementById("loginPassword")?.value.trim() || '';
-                        const loginStatus = document.getElementById("loginStatus");
-                        
-                        if (!username || !password) {
-                            if (loginStatus) loginStatus.innerText = "用户名和密码不能为空";
-                            logger.warn('登录', '用户名或密码为空');
-                            return;
-                        }
-                        
-                        // 模拟登录（实际项目替换为接口请求）
-                        const mockUser = {
-                            user_id: Date.now(),
-                            username: username,
-                            isVip: false
-                        };
-                        userInfo = mockUser;
-                        isVip = mockUser.isVip;
-                        localStorage.setItem("ai_creator_user", JSON.stringify(mockUser));
-                        
-                        const authModal = document.getElementById("authModal");
-                        if (authModal) authModal.classList.add("hide");
-                        
-                        showMainUI();
-                        logger.info('登录', '登录成功', { username });
-                        
-                        // 显示日志按钮
-                        const logBtn = document.getElementById("logExportBtn");
-                        if (logBtn) logBtn.classList.remove("hide");
-                        
-                    } catch (e) {
-                        const loginStatus = document.getElementById("loginStatus");
-                        if (loginStatus) loginStatus.innerText = "登录失败，请重试";
-                        logger.error('登录', '登录异常', e);
-                    }
-                }
-            }
-            
-            // 注册按钮
-            const registerBtn = document.getElementById("registerBtn");
-            if (registerBtn) {
-                registerBtn.onclick = function() {
-                    try {
-                        const username = document.getElementById("regUsername")?.value.trim() || '';
-                        const password = document.getElementById("regPassword")?.value.trim() || '';
-                        const regPhone = document.getElementById("regPhone")?.value.trim() || '';
-                        const registerStatus = document.getElementById("registerStatus");
-                        
-                        if (!username || !password) {
-                            if (registerStatus) registerStatus.innerText = "用户名和密码不能为空";
-                            logger.warn('注册', '用户名或密码为空');
-                            return;
-                        }
-                        
-                        // 模拟注册（实际项目替换为接口请求）
-                        const mockUser = {
-                            user_id: Date.now(),
-                            username: username,
-                            phone: regPhone,
-                            isVip: false
-                        };
-                        userInfo = mockUser;
-                        isVip = mockUser.isVip;
-                        localStorage.setItem("ai_creator_user", JSON.stringify(mockUser));
-                        
-                        const authModal = document.getElementById("authModal");
-                        if (authModal) authModal.classList.add("hide");
-                        
-                        showMainUI();
-                        logger.info('注册', '注册成功', { username, phone: regPhone });
-                        
-                        // 显示日志按钮
-                        const logBtn = document.getElementById("logExportBtn");
-                        if (logBtn) logBtn.classList.remove("hide");
-                        
-                    } catch (e) {
-                        const registerStatus = document.getElementById("registerStatus");
-                        if (registerStatus) registerStatus.innerText = "注册失败，请重试";
-                        logger.error('注册', '注册异常', e);
-                    }
-                }
-            }
-        }
-
-        // 绑定退出登录事件
-        function bindLogoutEvent() {
-            const logoutBtn = document.getElementById("logoutBtn");
-            if (logoutBtn) {
-                logoutBtn.onclick = function() {
-                    try {
-                        localStorage.removeItem("ai_creator_user");
-                        userInfo = null;
-                        isVip = false;
-                        
-                        // 隐藏主界面，显示登录弹窗
-                        const userSetting = document.getElementById("userSetting");
-                        const mainTabBar = document.getElementById("mainTabBar");
-                        const footerVip = document.getElementById("footerVip");
-                        const shortVideo = document.getElementById("shortVideo");
-                        const office = document.getElementById("office");
-                        const history = document.getElementById("history");
-                        const logExportBtn = document.getElementById("logExportBtn");
-                        const authModal = document.getElementById("authModal");
-                        
-                        if (userSetting) userSetting.classList.add("hide");
-                        if (mainTabBar) mainTabBar.classList.add("hide");
-                        if (footerVip) footerVip.classList.add("hide");
-                        if (shortVideo) shortVideo.classList.add("hide");
-                        if (office) office.classList.add("hide");
-                        if (history) history.classList.add("hide");
-                        if (logExportBtn) logExportBtn.classList.add("hide");
-                        if (authModal) authModal.classList.remove("hide");
-                        
-                        logger.info('退出登录', '退出成功');
-                    } catch (e) {
-                        logger.error('退出登录', '退出异常', e);
-                    }
-                }
-            }
-        }
-
-        // 绑定标签页切换事件
-        function bindTabEvent() {
-            const tabItems = document.querySelectorAll(".tab-item");
-            const tabContents = document.querySelectorAll(".tab-content");
-            
-            if (!tabItems || !tabContents) return;
-            
-            tabItems.forEach(tab => {
-                tab.onclick = function() {
-                    tabItems.forEach(t => t.classList.remove("active"));
-                    this.classList.add("active");
-                    const tabName = this.dataset.tab;
-                    
-                    tabContents.forEach(content => {
-                        content.classList.add("hide");
-                        if (content.id === tabName) {
-                            content.classList.remove("hide");
-                        }
-                    });
-                    
-                    // 如果切换到历史标签，重新加载历史记录
-                    if (tabName === 'history') {
-                        loadHistory();
-                    }
-                    
-                    logger.info('标签切换', `切换到${tabName}标签`);
-                }
-            });
-        }
-
-        // 绑定生成按钮事件
-        function bindCreateEvent() {
-            // 短视频创作生成
-            const svCreateBtn = document.getElementById("svCreate");
-            if (svCreateBtn) {
-                svCreateBtn.onclick = function() {
-                    try {
-                        const platform = document.getElementById("svPlatform")?.value || '';
-                        const tone = document.getElementById("svTone")?.value || '';
-                        const prompt = document.getElementById("svPrompt")?.value.trim() || '';
-                        const svResult = document.getElementById("svResult");
-                        
-                        if (!prompt) {
-                            alert("请输入创作需求！");
-                            logger.warn('生成内容', '短视频创作需求为空');
-                            return;
-                        }
-                        
-                        // 模拟AI生成（实际项目替换为接口请求）
-                        svResult.innerText = `【${platform}】${tone}风格：${prompt}\n\n--- AI生成内容示例 ---\n根据你的需求，为你生成适配${platform}平台的${tone}风格内容：\n1. 标题：${prompt.substring(0, 10)}...\n2. 脚本：这是适配${tone}风格的${platform}短视频脚本内容，可根据实际需求调整。`;
-                        
-                        // 保存到历史记录
-                        saveHistory({
-                            type: 'shortVideo',
-                            platform,
-                            tone,
-                            prompt,
-                            result: svResult.innerText
-                        });
-                        
-                        logger.info('生成内容', '短视频内容生成成功', { platform, tone, prompt });
-                    } catch (e) {
-                        logger.error('生成内容', '短视频内容生成失败', e);
-                        alert("生成失败，请重试！");
-                    }
-                }
-            }
-            
-            // 办公创作生成
-            const ofCreateBtn = document.getElementById("ofCreate");
-            if (ofCreateBtn) {
-                ofCreateBtn.onclick = function() {
-                    try {
-                        const tone = document.getElementById("ofTone")?.value || '';
-                        const prompt = document.getElementById("ofPrompt")?.value.trim() || '';
-                        const ofResult = document.getElementById("ofResult");
-                        
-                        if (!prompt) {
-                            alert("请输入创作需求！");
-                            logger.warn('生成内容', '办公创作需求为空');
-                            return;
-                        }
-                        
-                        // 模拟AI生成（实际项目替换为接口请求）
-                        ofResult.innerText = `【${tone}风格】${prompt}\n\n--- AI生成内容示例 ---\n根据你的需求，为你生成${tone}风格的办公内容：\n${prompt}\n\n以上内容为${tone}风格，符合办公场景使用规范，可根据实际情况调整。`;
-                        
-                        // 保存到历史记录
-                        saveHistory({
-                            type: 'office',
-                            tone,
-                            prompt,
-                            result: ofResult.innerText
-                        });
-                        
-                        logger.info('生成内容', '办公内容生成成功', { tone, prompt });
-                    } catch (e) {
-                        logger.error('生成内容', '办公内容生成失败', e);
-                        alert("生成失败，请重试！");
-                    }
-                }
-            }
-        }
-
-        // 绑定语音输入事件
-        function bindVoiceEvent() {
-            // 检查浏览器是否支持语音识别
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) {
-                logger.warn('语音输入', '浏览器不支持语音识别');
-                return;
-            }
-            
-            // 短视频语音输入
-            const svVoiceBtn = document.getElementById("svVoice");
-            if (svVoiceBtn) {
-                svVoiceBtn.onclick = function() {
-                    startVoiceRecognition('svPrompt');
-                }
-            }
-            
-            // 办公语音输入
-            const ofVoiceBtn = document.getElementById("ofVoice");
-            if (ofVoiceBtn) {
-                ofVoiceBtn.onclick = function() {
-                    startVoiceRecognition('ofPrompt');
-                }
-            }
-        }
-
-        // 语音识别核心方法
-        function startVoiceRecognition(targetId) {
-            try {
-                // 关闭已有识别实例
-                if (recognition) {
-                    recognition.stop();
-                    recognition = null;
-                }
+        // 认证相关事件
+        function bindAuthEvents() {
+            // 登录提交
+            document.getElementById('loginSubmit').addEventListener('click', async () => {
+                const username = document.getElementById('loginUsername').value.trim();
+                const password = document.getElementById('loginPassword').value.trim();
                 
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                recognition = new SpeechRecognition();
-                recognition.lang = 'zh-CN';
-                recognition.interimResults = false;
-                recognition.maxAlternatives = 1;
-                
-                const targetInput = document.getElementById(targetId);
-                if (!targetInput) return;
-                
-                // 开始识别
-                recognition.start();
-                alert("开始语音输入，请说话...");
-                logger.info('语音输入', `开始识别（目标：${targetId}）`);
-                
-                // 识别结果
-                recognition.onresult = function(event) {
-                    const transcript = event.results[0][0].transcript;
-                    targetInput.value = transcript;
-                    logger.info('语音输入', '识别成功', { transcript });
-                    alert(`识别结果：${transcript}`);
-                };
-                
-                // 识别结束
-                recognition.onend = function() {
-                    recognition = null;
-                    logger.info('语音输入', '识别结束');
-                };
-                
-                // 识别错误
-                recognition.onerror = function(event) {
-                    logger.error('语音输入', '识别错误', event.error);
-                    alert(`语音识别失败：${event.error}`);
-                    recognition = null;
-                };
-                
-            } catch (e) {
-                logger.error('语音输入', '启动识别失败', e);
-                alert("语音输入初始化失败，请重试！");
-            }
-        }
-
-        // 绑定复制按钮事件
-        function bindCopyEvent() {
-            // 短视频复制
-            const svCopyBtn = document.getElementById("svCopy");
-            if (svCopyBtn) {
-                svCopyBtn.onclick = function() {
-                    const content = document.getElementById("svResult")?.innerText || '';
-                    copyToClipboard(content);
-                }
-            }
-            
-            // 办公复制
-            const ofCopyBtn = document.getElementById("ofCopy");
-            if (ofCopyBtn) {
-                ofCopyBtn.onclick = function() {
-                    const content = document.getElementById("ofResult")?.innerText || '';
-                    copyToClipboard(content);
-                }
-            }
-        }
-
-        // 复制到剪贴板
-        function copyToClipboard(text) {
-            try {
-                if (!text) {
-                    alert("暂无内容可复制！");
+                if (!username || !password) {
+                    document.getElementById('loginStatus').textContent = '用户名和密码不能为空';
+                    document.getElementById('loginStatus').className = 'status-text status-error';
                     return;
                 }
                 
-                navigator.clipboard.writeText(text).then(() => {
-                    alert("复制成功！");
-                    logger.info('复制内容', '内容复制到剪贴板成功');
-                }).catch(err => {
-                    // 降级方案：创建临时文本框
-                    const textArea = document.createElement('textarea');
-                    textArea.value = text;
-                    document.body.appendChild(textArea);
-                    textArea.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(textArea);
-                    alert("复制成功！");
-                    logger.info('复制内容', '降级方案复制成功');
-                });
-            } catch (e) {
-                logger.error('复制内容', '复制失败', e);
-                alert("复制失败，请手动复制！");
-            }
-        }
-
-        // 绑定VIP相关事件
-        function bindVipEvent() {
-            // 打开VIP弹窗
-            const vipBtn = document.getElementById("vipBtn");
-            if (vipBtn) {
-                vipBtn.onclick = function() {
-                    const vipModal = document.getElementById("vipModal");
-                    if (vipModal) vipModal.classList.remove("hide");
-                    logger.info('VIP操作', '打开VIP弹窗');
-                }
-            }
-            
-            // 选择VIP套餐
-            const vipPackageItems = document.querySelectorAll(".vip-package-item");
-            if (vipPackageItems) {
-                vipPackageItems.forEach(item => {
-                    item.onclick = function() {
-                        vipPackageItems.forEach(i => i.classList.remove("active"));
-                        this.classList.add("active");
-                        selectedPackageId = parseInt(this.dataset.packageId) || 1;
-                        logger.info('VIP操作', `选择套餐ID：${selectedPackageId}`);
-                    }
-                });
-            }
-            
-            // 支付VIP
-            const vipPayBtn = document.getElementById("vipPayBtn");
-            if (vipPayBtn) {
-                vipPayBtn.onclick = function() {
-                    try {
-                        const vipPayStatus = document.getElementById("vipPayStatus");
-                        if (vipPayStatus) vipPayStatus.innerText = "支付中...";
-                        
-                        // 模拟支付（实际项目替换为支付接口）
-                        setTimeout(() => {
-                            isVip = true;
-                            userInfo.isVip = true;
-                            localStorage.setItem("ai_creator_user", JSON.stringify(userInfo));
-                            
-                            const countTip = document.getElementById("countTip");
-                            const vipStatusTip = document.getElementById("vipStatusTip");
-                            if (countTip) countTip.classList.add("hide");
-                            if (vipStatusTip) vipStatusTip.classList.remove("hide");
-                            
-                            if (vipPayStatus) vipPayStatus.innerText = "支付成功！已开通VIP会员";
-                            logger.info('VIP操作', `套餐${selectedPackageId}支付成功`);
-                            
-                            // 2秒后关闭弹窗
-                            setTimeout(() => {
-                                const vipModal = document.getElementById("vipModal");
-                                if (vipModal) vipModal.classList.add("hide");
-                            }, 2000);
-                        }, 1500);
-                        
-                    } catch (e) {
-                        const vipPayStatus = document.getElementById("vipPayStatus");
-                        if (vipPayStatus) vipPayStatus.innerText = "支付失败，请重试！";
-                        logger.error('VIP操作', '支付失败', e);
-                    }
-                }
-            }
-        }
-
-        // 绑定关闭按钮事件
-        function bindCloseBtnEvent() {
-            // 关闭VIP弹窗
-            const vipCloseBtn = document.getElementById("vipCloseBtn");
-            if (vipCloseBtn) {
-                vipCloseBtn.onclick = function() {
-                    const vipModal = document.getElementById("vipModal");
-                    if (vipModal) vipModal.classList.add("hide");
-                    logger.info('弹窗操作', '关闭VIP弹窗');
-                }
-            }
-            
-            // 关闭日志弹窗
-            const logCloseBtn = document.getElementById("logCloseBtn");
-            if (logCloseBtn) {
-                logCloseBtn.onclick = function() {
-                    const logModal = document.getElementById("logModal");
-                    if (logModal) logModal.classList.add("hide");
-                    logger.info('弹窗操作', '关闭日志弹窗');
-                }
-            }
-        }
-
-        // 绑定主题设置事件
-        function bindThemeEvent() {
-            // 打开主题弹窗
-            const themeSetBtn = document.getElementById("themeSet");
-            if (themeSetBtn) {
-                themeSetBtn.onclick = function() {
-                    const themeModal = document.getElementById("themeModal");
-                    if (themeModal) themeModal.classList.remove("hide");
-                    logger.info('主题操作', '打开主题设置弹窗');
-                }
-            }
-            
-            // 选择预设主题
-            const themeItems = document.querySelectorAll(".theme-item");
-            if (themeItems) {
-                themeItems.forEach(item => {
-                    item.onclick = function() {
-                        themeItems.forEach(i => i.classList.remove("active"));
-                        this.classList.add("active");
-                        selectedTheme = this.dataset.theme || "theme-lightblue";
-                        // 同步更新颜色选择器（取预设主题的主色）
-                        const colorMap = {
-                            "theme-black": "#1f2937",
-                            "theme-white": "#6b7280",
-                            "theme-lightblue": "#4299e1",
-                            "theme-red": "#ef4444",
-                            "theme-lightcyan": "#06b6d4"
-                        };
-                        customPrimaryColor = colorMap[selectedTheme] || "#4299e1";
-                        const colorPicker = document.getElementById("colorPicker");
-                        if (colorPicker) colorPicker.value = customPrimaryColor;
-                        logger.info('主题操作', `选择预设主题：${selectedTheme}`);
-                    }
-                });
-            }
-            
-            // 自定义颜色选择
-            const colorPicker = document.getElementById("colorPicker");
-            if (colorPicker) {
-                colorPicker.onchange = function() {
-                    customPrimaryColor = this.value;
-                    logger.info('主题操作', `选择自定义颜色：${customPrimaryColor}`);
-                }
-            }
-            
-            // 确认应用主题
-            const themeConfirmBtn = document.getElementById("themeConfirmBtn");
-            if (themeConfirmBtn) {
-                themeConfirmBtn.onclick = function() {
-                    applyTheme(selectedTheme, customPrimaryColor);
-                    saveTheme(selectedTheme, customPrimaryColor);
+                try {
+                    const result = await apiClient.post('/api/login', {
+                        username,
+                        password
+                    });
                     
-                    const themeModal = document.getElementById("themeModal");
-                    if (themeModal) themeModal.classList.add("hide");
-                    logger.info('主题操作', '确认应用主题');
-                }
-            }
-        }
-
-        // 绑定日志相关事件
-        function bindLogEvents() {
-            // 打开日志弹窗
-            const logExportBtn = document.getElementById("logExportBtn");
-            if (logExportBtn) {
-                logExportBtn.onclick = function() {
-                    const logModal = document.getElementById("logModal");
-                    const logContent = document.getElementById("logContent");
-                    if (logModal && logContent) {
-                        logContent.innerText = logger.getFormattedLogs();
-                        logModal.classList.remove("hide");
+                    if (result.code === 200) {
+                        userInfo = result.data;
+                        isVip = userInfo.is_vip || false;
+                        localStorage.setItem('ai_creator_user', JSON.stringify(userInfo));
+                        
+                        document.getElementById('loginStatus').textContent = '登录成功';
+                        document.getElementById('loginStatus').className = 'status-text status-success';
+                        
+                        // 隐藏弹窗，显示主界面
+                        setTimeout(() => {
+                            hideAuthModal();
+                            showMainUI();
+                        }, 1000);
+                    } else {
+                        throw new Error(result.message || '登录失败');
                     }
-                    logger.info('日志操作', '打开日志弹窗');
+                } catch (error) {
+                    document.getElementById('loginStatus').textContent = error.message;
+                    document.getElementById('loginStatus').className = 'status-text status-error';
+                    logger.error('Auth', '登录失败', error);
                 }
-            }
-            
-            // 清空日志
-            const logClearBtn = document.getElementById("logClearBtn");
-            if (logClearBtn) {
-                logClearBtn.onclick = function() {
-                    if (confirm("确定要清空日志吗？")) {
-                        logger.clearLogs();
-                        const logContent = document.getElementById("logContent");
-                        if (logContent) logContent.innerText = "";
-                        logger.info('日志操作', '清空日志');
+            });
+
+            // 注册提交
+            document.getElementById('registerSubmit').addEventListener('click', async () => {
+                const username = document.getElementById('regUsername').value.trim();
+                const password = document.getElementById('regPassword').value.trim();
+                const phone = document.getElementById('regPhone').value.trim();
+                
+                if (!username || !password) {
+                    document.getElementById('registerStatus').textContent = '用户名和密码不能为空';
+                    document.getElementById('registerStatus').className = 'status-text status-error';
+                    return;
+                }
+                
+                try {
+                    const result = await apiClient.post('/api/register', {
+                        username,
+                        password,
+                        phone
+                    });
+                    
+                    if (result.code === 200) {
+                        document.getElementById('registerStatus').textContent = '注册成功，请登录';
+                        document.getElementById('registerStatus').className = 'status-text status-success';
+                        
+                        // 切换到登录标签
+                        setTimeout(() => {
+                            switchAuthTab('login');
+                        }, 1500);
+                    } else {
+                        throw new Error(result.message || '注册失败');
                     }
+                } catch (error) {
+                    document.getElementById('registerStatus').textContent = error.message;
+                    document.getElementById('registerStatus').className = 'status-text status-error';
+                    logger.error('Auth', '注册失败', error);
                 }
-            }
+            });
+        }
+
+        // 创作相关事件
+        function bindCreateEvents() {
+            // 短视频生成
+            document.getElementById('svCreate').addEventListener('click', async () => {
+                const platform = document.getElementById('svPlatform').value;
+                const tone = document.getElementById('svTone').value;
+                const prompt = document.getElementById('svPrompt').value.trim();
+                
+                if (!prompt) {
+                    alert('请输入创作需求');
+                    return;
+                }
+                
+                const resultEl = document.getElementById('svResult');
+                resultEl.textContent = '正在生成...';
+                
+                try {
+                    const result = await apiClient.post('/api/ai_create', {
+                        user_id: userInfo.user_id,
+                        type: 'short_video',
+                        platform,
+                        tone,
+                        prompt
+                    });
+                    
+                    if (result.code === 200) {
+                        resultEl.textContent = result.data.content;
+                        saveHistory('shortVideo', prompt, result.data.content);
+                    } else {
+                        throw new Error(result.message || '生成失败');
+                    }
+                } catch (error) {
+                    resultEl.textContent = `生成失败：${error.message}`;
+                    logger.error('Create', '短视频生成失败', error);
+                }
+            });
+
+            // 办公内容生成
+            document.getElementById('ofCreate').addEventListener('click', async () => {
+                const tone = document.getElementById('ofTone').value;
+                const prompt = document.getElementById('ofPrompt').value.trim();
+                
+                if (!prompt) {
+                    alert('请输入创作需求');
+                    return;
+                }
+                
+                const resultEl = document.getElementById('ofResult');
+                resultEl.textContent = '正在生成...';
+                
+                try {
+                    const result = await apiClient.post('/api/ai_create', {
+                        user_id: userInfo.user_id,
+                        type: 'office',
+                        tone,
+                        prompt
+                    });
+                    
+                    if (result.code === 200) {
+                        resultEl.textContent = result.data.content;
+                        saveHistory('office', prompt, result.data.content);
+                    } else {
+                        throw new Error(result.message || '生成失败');
+                    }
+                } catch (error) {
+                    resultEl.textContent = `生成失败：${error.message}`;
+                    logger.error('Create', '办公内容生成失败', error);
+                }
+            });
+        }
+
+        // 历史记录相关事件
+        function bindHistoryEvents() {
+            document.getElementById('refreshHistory').addEventListener('click', loadHistory);
+        }
+
+        // 会员相关事件
+        function bindVipEvents() {
+            // 开通会员按钮
+            document.getElementById('vipBtn').addEventListener('click', showVipModal);
+            document.getElementById('openVipBtn').addEventListener('click', showVipModal);
             
-            // 导出日志
-            const logSaveBtn = document.getElementById("logSaveBtn");
-            if (logSaveBtn) {
-                logSaveBtn.onclick = function() {
-                    logger.exportLogs();
-                    logger.info('日志操作', '导出日志');
+            // 支付按钮
+            document.getElementById('vipPayBtn').addEventListener('click', async () => {
+                if (!selectedPackageId) {
+                    document.getElementById('vipPayStatus').textContent = '请选择会员套餐';
+                    document.getElementById('vipPayStatus').className = 'status-text status-error';
+                    return;
                 }
+                
+                try {
+                    const result = await apiClient.post('/api/create_vip_order', {
+                        user_id: userInfo.user_id,
+                        package_id: selectedPackageId
+                    });
+                    
+                    if (result.code === 200) {
+                        // 跳转到支付页面
+                        window.location.href = result.data.pay_url;
+                    } else {
+                        throw new Error(result.message || '创建订单失败');
+                    }
+                } catch (error) {
+                    document.getElementById('vipPayStatus').textContent = error.message;
+                    document.getElementById('vipPayStatus').className = 'status-text status-error';
+                    logger.error('VIP', '支付失败', error);
+                }
+            });
+        }
+
+        // 主题切换事件
+        function bindThemeEvent() {
+            const themeToggle = document.getElementById('themeToggle');
+            themeToggle.addEventListener('click', toggleTheme);
+        }
+
+        // 加载主题
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            
+            // 更新图标
+            updateThemeIcon(savedTheme);
+        }
+
+        // 切换主题
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            // 更新图标
+            updateThemeIcon(newTheme);
+            
+            logger.info('Theme', `切换到${newTheme}主题`);
+        }
+
+        // 更新主题图标
+        function updateThemeIcon(theme) {
+            const icon = document.querySelector('#themeToggle i');
+            if (theme === 'dark') {
+                icon.className = 'fas fa-sun';
+            } else {
+                icon.className = 'fas fa-moon';
             }
         }
 
-        // 获取用户信息（模拟接口）
-        function getUserInfo() {
+        // 显示认证弹窗
+        function showAuthModal(type = 'login') {
+            document.getElementById('authModal').classList.remove('hide');
+            switchAuthTab(type);
+            
+            // 清空状态
+            document.getElementById('loginStatus').textContent = '';
+            document.getElementById('registerStatus').textContent = '';
+        }
+
+        // 隐藏认证弹窗
+        function hideAuthModal() {
+            document.getElementById('authModal').classList.add('hide');
+        }
+
+        // 切换认证标签
+        function switchAuthTab(type) {
+            const tabs = document.querySelectorAll('.auth-tab');
+            const contents = document.querySelectorAll('.auth-content');
+            
+            tabs.forEach(tab => {
+                if (tab.dataset.authTab === type) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            contents.forEach(content => {
+                if (content.id === `${type}Form`) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+            
+            // 更新标题
+            document.querySelector('.modal-header span:first-child').textContent = 
+                type === 'login' ? '用户登录' : '用户注册';
+        }
+
+        // 显示会员弹窗
+        async function showVipModal() {
+            document.getElementById('vipModal').classList.remove('hide');
+            document.getElementById('vipPayStatus').textContent = '';
+            
+            // 加载会员套餐
+            await loadVipPackages();
+        }
+
+        // 隐藏会员弹窗
+        function hideVipModal() {
+            document.getElementById('vipModal').classList.add('hide');
+        }
+
+        // 加载会员套餐
+        async function loadVipPackages() {
             try {
-                // 模拟获取VIP状态
-                isVip = userInfo.isVip || false;
-                logger.info('用户信息', '获取用户信息成功', { isVip });
-            } catch (e) {
-                logger.error('用户信息', '获取用户信息失败', e);
+                const result = await apiClient.get('/api/get_vip_packages');
+                
+                if (result.code === 200 && result.data.length > 0) {
+                    const packageList = document.getElementById('vipPackageList');
+                    packageList.innerHTML = '';
+                    
+                    result.data.forEach((pkg, index) => {
+                        const pkgEl = document.createElement('div');
+                        pkgEl.className = `vip-package-item ${index === 0 ? 'active' : ''}`;
+                        pkgEl.dataset.packageId = pkg.id;
+                        pkgEl.innerHTML = `
+                            <div class="package-name">${pkg.name}</div>
+                            <div class="package-price">¥${pkg.price}/${pkg.cycle}</div>
+                            <div class="package-desc">${pkg.desc}</div>
+                        `;
+                        
+                        pkgEl.addEventListener('click', () => {
+                            document.querySelectorAll('.vip-package-item').forEach(i => i.classList.remove('active'));
+                            pkgEl.classList.add('active');
+                            selectedPackageId = pkg.id;
+                        });
+                        
+                        packageList.appendChild(pkgEl);
+                    });
+                    
+                    // 默认选中第一个
+                    selectedPackageId = result.data[0].id;
+                }
+            } catch (error) {
+                logger.error('VIP', '加载套餐失败', error);
+                document.getElementById('vipPackageList').innerHTML = `
+                    <div style="text-align:center; color:var(--error); padding:20px 0;">
+                        加载套餐失败：${error.message}
+                    </div>
+                `;
             }
         }
 
-        // 获取VIP套餐（模拟接口）
-        function getVipPackages() {
-            try {
-                // 实际项目中从接口获取套餐列表并渲染
-                logger.info('VIP套餐', '获取套餐列表成功');
-            } catch (e) {
-                logger.error('VIP套餐', '获取套餐列表失败', e);
-            }
+        // 退出登录
+        function logout() {
+            localStorage.removeItem('ai_creator_user');
+            userInfo = null;
+            isVip = false;
+            showUnloginUI();
+            logger.info('Auth', '退出登录成功');
         }
 
         // 保存历史记录
-        function saveHistory(historyItem) {
+        async function saveHistory(type, prompt, content) {
             try {
-                const HISTORY_KEY = 'ai_creator_history';
-                const historyList = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+                await apiClient.post('/api/get_history', {
+                    user_id: userInfo.user_id,
+                    type,
+                    prompt,
+                    content,
+                    create_time: new Date().getTime()
+                });
                 
-                historyItem.id = Date.now();
-                historyItem.createTime = new Date().toLocaleString();
-                historyList.unshift(historyItem); // 最新的放在前面
-                
-                // 最多保留100条历史记录
-                if (historyList.length > 100) {
-                    historyList.pop();
-                }
-                
-                localStorage.setItem(HISTORY_KEY, JSON.stringify(historyList));
-                logger.info('历史记录', '保存成功', { id: historyItem.id });
-            } catch (e) {
-                logger.error('历史记录', '保存失败', e);
+                // 刷新历史记录
+                loadHistory();
+            } catch (error) {
+                logger.error('History', '保存失败', error);
             }
         }
 
         // 加载历史记录
-        function loadHistory() {
+        async function loadHistory() {
             try {
-                const HISTORY_KEY = 'ai_creator_history';
-                const historyList = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
-                const historyListDom = document.getElementById("historyList");
-                
-                if (!historyListDom) return;
-                
-                if (historyList.length === 0) {
-                    historyListDom.innerHTML = '<div style="text-align:center; color:var(--text-gray); padding:20px 0;">暂无生成记录，快去创作吧~</div>';
-                    return;
-                }
-                
-                // 渲染历史记录
-                let html = '';
-                historyList.forEach(item => {
-                    html += `
-                        <div class="history-item">
-                            <div class="history-time">${item.createTime}</div>
-                            <div class="history-prompt">${item.prompt.substring(0, 50)}${item.prompt.length > 50 ? '...' : ''}</div>
-                            <div class="history-content">${item.result.substring(0, 100)}${item.result.length > 100 ? '...' : ''}</div>
-                        </div>
-                    `;
+                const result = await apiClient.get('/api/get_history', {
+                    user_id: userInfo.user_id
                 });
                 
-                historyListDom.innerHTML = html;
-                logger.info('历史记录', '加载成功', { count: historyList.length });
-            } catch (e) {
-                logger.error('历史记录', '加载失败', e);
+                if (result.code === 200 && result.data.length > 0) {
+                    const historyList = document.getElementById('historyList');
+                    historyList.innerHTML = '';
+                    
+                    result.data.forEach(item => {
+                        const timeStr = new Date(item.create_time).toLocaleString();
+                        const typeText = item.type === 'shortVideo' ? '短视频' : '办公内容';
+                        
+                        const historyItem = document.createElement('div');
+                        historyItem.className = 'history-item';
+                        historyItem.innerHTML = `
+                            <div class="history-time">${timeStr} · ${typeText}</div>
+                            <div class="history-prompt">${item.prompt}</div>
+                            <div class="history-content">${item.content}</div>
+                        `;
+                        
+                        historyList.appendChild(historyItem);
+                    });
+                } else {
+                    document.getElementById('historyList').innerHTML = `
+                        <div style="text-align:center; color:var(--text-gray); padding:20px 0;">
+                            暂无生成记录，快去创作吧~
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                logger.error('History', '加载失败', error);
+                document.getElementById('historyList').innerHTML = `
+                    <div style="text-align:center; color:var(--error); padding:20px 0;">
+                        加载历史失败：${error.message}
+                    </div>
+                `;
             }
         }
+
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', init);
+
+        // 全局错误捕获
+        window.addEventListener('error', (event) => {
+            logger.error('Global', '页面错误', {
+                message: event.message,
+                filename: event.filename,
+                lineno: event.lineno,
+                colno: event.colno,
+                error: event.error
+            });
+        });
+
+        // 全局Promise错误捕获
+        window.addEventListener('unhandledrejection', (event) => {
+            logger.error('Global', 'Promise错误', event.reason);
+        });
     </script>
 </body>
 </html>
