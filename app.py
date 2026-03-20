@@ -19,29 +19,8 @@ DB_CONFIG = {
 # -------------------------- 核心接口 --------------------------
 # 1. 根路由（解决 404 关键！）
 @app.route('/')
-def test_db():
-    try:
-        import psycopg2
-        conn = psycopg2.connect(**DB_CONFIG)
-        cur = conn.cursor()
-        cur.execute("SELECT 1")
-        cur.close()
-        conn.close()
-        return jsonify({"status": "success", "message": "数据库连接正常"})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-        
 def index():
-    return jsonify({
-        "status": "success",
-        "message": "服务运行正常✅",
-        "available_endpoints": {
-            "GET /": "检查服务状态",
-            "GET /api/get_vip_packages": "获取VIP套餐列表",
-            "POST /api/login": "用户登录",
-            "POST /api/register": "用户注册"
-        }
-    })
+    return render_template('index.html')  # 注意：Flask 默认会去 templates 文件夹找模板
 
 # 2. 获取VIP套餐接口
 @app.route('/api/get_vip_packages', methods=['GET'])
