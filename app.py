@@ -6,7 +6,7 @@ import hashlib
 import logging
 import requests
 from logging.handlers import TimedRotatingFileHandler
-from flask import Flask, request, jsonify, g
+from flask import Flask, render_template
 import secrets
 
 # ====================== 核心配置======================
