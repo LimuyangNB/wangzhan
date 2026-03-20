@@ -1,634 +1,303 @@
-import os
-import json
-import time
+from flask import (
+    Flask, render_template, g,
+    request, session, redirect, url_for,
+    jsonify  # 关键修复：导入jsonify
+)
 import sqlite3
-import hashlib
 import logging
-import requests
-from logging.handlers import TimedRotatingFileHandler
-from flask import Flask, render_template, g, request, session, redirect, url_for
-import secrets
-
-# ====================== 核心配置======================
-
-API_KEY = os.environ.get("API_KEY", "")
-API_HOST = os.environ.get("API_HOST", "api.chatanywhere.tech")
-MODEL_NAME = os.environ.get("MODEL_NAME", "gpt-4o")
-API_TIMEOUT = int(os.environ.get("API_TIMEOUT", 60))
-
-# 启动校验调整
-if not API_KEY:
-    logger.error("请配置API_KEY环境变量！")
-    print("❌ 错误：请在railway中配置API_KEY环境变量")
-    exit(1)
-# ======================================================================================
-
-# ========== 1. 日志配置 ==========
-def setup_logger():
-    """初始化日志配置：按天分割，保留7天日志"""
-    if not os.path.exists("logs"):
-        os.makedirs("logs")
-    
-    log_formatter = logging.Formatter(
-        '%(asctime)s - %(levelname)s - %(module)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
-    )
-    
-    log_handler = TimedRotatingFileHandler(
-        filename='logs/server.log',
-        when='midnight',
-        interval=1,
-        backupCount=7,
-        encoding='utf-8'
-    )
-    log_handler.suffix = '%Y%m%d.log'
-    log_handler.setFormatter(log_formatter)
-    
-    console_handler = logging.StreamHandler()
-    console_handler.setFormatter(log_formatter)
-    
-    logger = logging.getLogger('ai_creator')
-    logger.setLevel(logging.INFO)
-    logger.addHandler(log_handler)
-    logger.addHandler(console_handler)
-    
-    return logger
-
-logger = setup_logger()
-
-# ========== 2. 基础配置 ==========
-# 基础配置
-app = Flask(__name__)
-
-
-@app.errorhandler(Exception)
-def handle_exception(e):
-    import traceback
-    print(traceback.format_exc())  # 打印完整堆栈
-    return "Internal Server Error", 500
-
-@app.route('/')
-def index():
-    return render_template('index.html')  # 注意：Flask 默认会去 templates 文件夹找模板
-
-# 自动管理SECRET_KEY，重启不失效
-SECRET_KEY_FILE = '.secret_key'
-if os.path.exists(SECRET_KEY_FILE):
-    # 已有密钥，直接读取
-    with open(SECRET_KEY_FILE, 'r', encoding='utf-8') as f:
-        app.config['SECRET_KEY'] = f.read().strip()
-else:
-    # 首次运行，生成新密钥并保存
-    new_key = secrets.token_hex(32)
-    with open(SECRET_KEY_FILE, 'w', encoding='utf-8') as f:
-        f.write(new_key)
-    app.config['SECRET_KEY'] = new_key
-    # 把密钥文件加入.gitignore，避免泄露
-    if not os.path.exists('.gitignore'):
-        with open('.gitignore', 'w', encoding='utf-8') as f:
-            f.write('.secret_key\nai_creator.db\nlogs/\n__pycache__/\n')
-
-DATABASE = 'ai_creator.db'
-
-# ========== 3. 数据库操作 ==========
+from datetime import datetime
 import os
-import psycopg2
-from psycopg2.extras import RealDictCursor
 
-# 获取railway自动注入的PostgreSQL连接地址
-DATABASE_URL = os.environ.get("DATABASE_URL")
+# 初始化日志
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
+app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'ai-creator-2026')  # 兼容环境变量
+app.config['DATABASE'] = 'app.db'
+
+# --------------------------
+# 跨域配置（关键！前端能正常调用）
+# --------------------------
+@app.after_request
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    return response
+
+# --------------------------
+# 数据库操作
+# --------------------------
 def get_db():
-    """获取数据库连接（Flask上下文管理）"""
     db = getattr(g, '_database', None)
     if db is None:
-        # 建立PostgreSQL连接
-        db = g._database = psycopg2.connect(DATABASE_URL)
-        db.autocommit = True  # 自动提交事务
+        db = g._database = sqlite3.connect(app.config['DATABASE'])
+        db.row_factory = sqlite3.Row  # 支持字段名访问
     return db
 
 @app.teardown_appcontext
 def close_connection(exception):
-    """请求结束后关闭数据库连接"""
     db = getattr(g, '_database', None)
     if db is not None:
         db.close()
 
-# 初始化表结构（调整SQL语法，PostgreSQL与SQLite的差异）
+# 初始化数据库（首次运行自动创建表）
 def init_db():
-    """初始化所有数据库表结构（仅首次执行）"""
-    with current_app.app_context():
+    with app.app_context():
         db = get_db()
-        cursor = db.cursor(cursor_factory=RealDictCursor)
+        cursor = db.cursor()
         
-        # ===================== 1. 用户表（核心） =====================
+        # 1. 用户表
         cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            user_id SERIAL PRIMARY KEY,                -- 自增主键（替代SQLite的AUTOINCREMENT）
-            username TEXT UNIQUE NOT NULL,             -- 用户名（唯一）
-            password TEXT NOT NULL,                    -- 密码（建议加密存储）
-            phone TEXT,                                 -- 手机号（可选）
-            is_vip BOOLEAN DEFAULT FALSE,               -- 是否VIP（简化版，替代vip_type）
-            vip_expire_time BIGINT DEFAULT 0,           -- VIP过期时间（时间戳，单位秒）
-            free_count INTEGER DEFAULT 3,               -- 每日免费生成次数
-            last_reset_time BIGINT DEFAULT 0,           -- 免费次数最后重置时间
-            create_time BIGINT DEFAULT EXTRACT(EPOCH FROM NOW())::BIGINT  -- 创建时间（时间戳）
-        )
+            CREATE TABLE IF NOT EXISTS users (
+                user_id TEXT PRIMARY KEY,
+                username TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL,
+                phone TEXT,
+                is_vip INTEGER DEFAULT 0,
+                create_time INTEGER NOT NULL
+            )
         ''')
         
-        # ===================== 2. VIP套餐表 =====================
+        # 2. 创作历史表
         cursor.execute('''
-        CREATE TABLE IF NOT EXISTS vip_packages (
-            package_id SERIAL PRIMARY KEY,              -- 套餐ID
-            package_name TEXT NOT NULL,                 -- 套餐名称（如月会员、年会员）
-            price DECIMAL(10, 2) NOT NULL,              -- 套餐价格
-            duration_days INTEGER NOT NULL,             -- 有效期（天）
-            description TEXT,                           -- 套餐描述
-            create_time BIGINT DEFAULT EXTRACT(EPOCH FROM NOW())::BIGINT  -- 创建时间
-        )
+            CREATE TABLE IF NOT EXISTS history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                type TEXT NOT NULL,
+                prompt TEXT NOT NULL,
+                content TEXT NOT NULL,
+                create_time INTEGER NOT NULL
+            )
         ''')
         
-        # ===================== 3. 订单表 =====================
+        # 3. 会员套餐表
         cursor.execute('''
-        CREATE TABLE IF NOT EXISTS orders (
-            order_id SERIAL PRIMARY KEY,                -- 订单ID
-            user_id INTEGER NOT NULL,                   -- 关联用户ID
-            package_id INTEGER NOT NULL,                -- 关联套餐ID
-            amount DECIMAL(10, 2) NOT NULL,             -- 支付金额
-            status INTEGER DEFAULT 0,                   -- 订单状态：0-未支付，1-已支付，2-已取消
-            pay_time BIGINT DEFAULT 0,                  -- 支付时间
-            create_time BIGINT DEFAULT EXTRACT(EPOCH FROM NOW())::BIGINT,  -- 创建时间
-            -- 外键约束（确保用户/套餐存在）
-            FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-            FOREIGN KEY (package_id) REFERENCES vip_packages(package_id) ON DELETE CASCADE
-        )
+            CREATE TABLE IF NOT EXISTS vip_packages (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                price REAL NOT NULL,
+                cycle TEXT NOT NULL,
+                desc TEXT
+            )
         ''')
         
-        # ===================== 4. 生成记录表 =====================
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS generate_records (
-            record_id SERIAL PRIMARY KEY,               -- 记录ID
-            user_id INTEGER NOT NULL,                   -- 关联用户ID
-            content_type TEXT NOT NULL,                 -- 内容类型：short_video/office
-            prompt TEXT NOT NULL,                       -- 用户输入的提示词
-            content TEXT NOT NULL,                      -- AI生成的内容
-            is_free BOOLEAN DEFAULT TRUE,               -- 是否使用免费次数
-            create_time BIGINT DEFAULT EXTRACT(EPOCH FROM NOW())::BIGINT,  -- 创建时间
-            -- 外键约束
-            FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-        )
-        ''')
-        
-        # ===================== 初始化默认VIP套餐 =====================
-        # 先检查是否已有套餐，避免重复插入
-        cursor.execute('SELECT COUNT(*) FROM vip_packages')
-        count = cursor.fetchone()['count']
-        if count == 0:
-            # 插入默认套餐：月会员、季会员、年会员
-            cursor.execute('''
-            INSERT INTO vip_packages (package_name, price, duration_days, description)
-            VALUES 
-            ('月会员', 19.90, 30, '30天VIP有效期，无限制生成内容'),
-            ('季会员', 49.90, 90, '90天VIP有效期，无限制生成内容'),
-            ('年会员', 169.90, 365, '365天VIP有效期，无限制生成内容')
-            ''')
+        # 插入默认会员套餐
+        cursor.execute('INSERT OR IGNORE INTO vip_packages VALUES (?, ?, ?, ?, ?)',
+                      ('monthly', '月度会员', 19.9, '月', '无限制创作次数+更多风格选择'))
+        cursor.execute('INSERT OR IGNORE INTO vip_packages VALUES (?, ?, ?, ?, ?)',
+                      ('yearly', '年度会员', 199.0, '年', '全部特权+优先使用新功能'))
         
         db.commit()
-        cursor.close()
-        print("✅ 数据库表结构初始化完成！")
+        logger.info("数据库初始化完成")
 
-# ========== 4. 工具函数 ==========
-def generate_order_no(user_id):
-    """生成唯一订单号"""
-    timestamp = str(int(time.time()))
-    random_str = hashlib.md5(f"{user_id}{timestamp}".encode()).hexdigest()[:8]
-    return f"VIP{user_id}{timestamp}{random_str}"
+# --------------------------
+# 页面路由
+# --------------------------
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-def call_gpt4o_api(system_prompt, user_prompt):
-    """调用GPT-4o API，返回生成的内容"""
-    # 拼接完整的API地址
-    api_url = f"https://{API_HOST}/v1/chat/completions"
-    # 请求头
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {API_KEY}"
-    }
-    # 请求体
-    payload = {
-        "model": MODEL_NAME,
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ],
-        "temperature": 0.7,
-        "stream": False
-    }
+# --------------------------
+# API接口（核心功能）
+# --------------------------
 
+# 1. 用户登录
+@app.route('/api/login', methods=['POST'])
+def login():
     try:
-        logger.info(f"开始调用GPT-4o API | 模型：{MODEL_NAME} | Host：{API_HOST}")
-        # 发送请求
-        response = requests.post(
-            url=api_url,
-            headers=headers,
-            json=payload,
-            timeout=API_TIMEOUT
-        )
-        # 处理响应
-        if response.status_code == 200:
-            result = response.json()
-            content = result["choices"][0]["message"]["content"].strip()
-            logger.info(f"GPT-4o API调用成功 | 响应长度：{len(content)}")
-            return True, content
+        data = request.get_json()
+        username = data.get('username', '').strip()
+        password = data.get('password', '').strip()
+        
+        if not username or not password:
+            return jsonify({'code': 400, 'msg': '用户名和密码不能为空'})
+        
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute('SELECT * FROM users WHERE username = ? AND password = ?', 
+                      (username, password))
+        user = cursor.fetchone()
+        
+        if user:
+            # 生成简单token（实际项目建议用JWT）
+            token = f"token_{user['user_id']}_{datetime.now().timestamp()}"
+            return jsonify({
+                'code': 200,
+                'data': {
+                    'user_id': user['user_id'],
+                    'username': user['username'],
+                    'is_vip': bool(user['is_vip']),
+                    'token': token
+                }
+            })
         else:
-            error_msg = f"API调用失败，状态码：{response.status_code}，响应：{response.text}"
-            logger.error(error_msg)
-            return False, f"生成失败：{error_msg}"
-    except requests.exceptions.Timeout:
-        error_msg = "API请求超时，请重试"
-        logger.error(error_msg)
-        return False, error_msg
+            return jsonify({'code': 401, 'msg': '用户名或密码错误'})
+    
     except Exception as e:
-        error_msg = f"API调用异常：{str(e)}"
-        logger.error(error_msg, exc_info=True)
-        return False, error_msg
+        logger.error(f"登录接口异常：{str(e)}")
+        return jsonify({'code': 500, 'msg': '服务器内部错误'})
 
-# ========== 5. API接口 ==========
+# 2. 用户注册
 @app.route('/api/register', methods=['POST'])
 def register():
-    """用户注册"""
     try:
-        data = request.get_json() or {}
+        data = request.get_json()
         username = data.get('username', '').strip()
         password = data.get('password', '').strip()
         phone = data.get('phone', '').strip()
         
         if not username or not password:
-            logger.warn(f"注册失败：用户名/密码为空 | 请求数据：{data}")
             return jsonify({'code': 400, 'msg': '用户名和密码不能为空'})
         
-        pwd_hash = hashlib.md5(password.encode()).hexdigest()
+        # 生成唯一user_id
+        user_id = str(int(datetime.now().timestamp() * 1000))
+        create_time = int(datetime.now().timestamp())
         
         db = get_db()
         cursor = db.cursor()
-        
-        try:
-            cursor.execute(
-                'INSERT INTO users (username, password, phone) VALUES (?,?,?)',
-                (username, pwd_hash, phone)
-            )
-            db.commit()
-            logger.info(f"用户注册成功 | 用户名：{username} | 手机号：{phone}")
-            return jsonify({'code': 200, 'msg': '注册成功'})
-        except sqlite3.IntegrityError:
-            logger.warn(f"注册失败：用户名已存在 | 用户名：{username}")
-            return jsonify({'code': 409, 'msg': '用户名已存在'})
-    except Exception as e:
-        logger.error(f"注册接口异常：{str(e)} | 请求数据：{request.get_json()}", exc_info=True)
-        return jsonify({'code': 500, 'msg': '服务器内部错误'})
-
-@app.route('/api/login', methods=['POST'])
-def login():
-    """用户登录"""
-    try:
-        data = request.get_json() or {}
-        username = data.get('username', '').strip()
-        password = data.get('password', '').strip()
-        
-        if not username or not password:
-            logger.warn(f"登录失败：用户名/密码为空 | 请求数据：{data}")
-            return jsonify({'code': 400, 'msg': '用户名和密码不能为空'})
-        
-        pwd_hash = hashlib.md5(password.encode()).hexdigest()
-        db = get_db()
-        cursor = db.cursor()
-        
         cursor.execute(
-            'SELECT user_id, username, vip_type, vip_expire_time FROM users WHERE username=? AND password=?',
-            (username, pwd_hash)
+            'INSERT INTO users (user_id, username, password, phone, create_time) VALUES (?, ?, ?, ?, ?)',
+            (user_id, username, password, phone, create_time)
         )
-        user = cursor.fetchone()
+        db.commit()
         
-        if user:
-            logger.info(f"用户登录成功 | 用户名：{username} | 用户ID：{user['user_id']}")
-            return jsonify({
-                'code': 200,
-                'msg': '登录成功',
-                'data': {
-                    'user_id': user['user_id'],
-                    'username': user['username'],
-                    'vip_type': user['vip_type'],
-                    'vip_expire_time': user['vip_expire_time']
-                }
-            })
-        else:
-            logger.warn(f"登录失败：用户名/密码错误 | 用户名：{username}")
-            return jsonify({'code': 401, 'msg': '用户名或密码错误'})
+        return jsonify({'code': 200, 'msg': '注册成功，请登录'})
+    
+    except sqlite3.IntegrityError:
+        return jsonify({'code': 400, 'msg': '用户名已存在'})
     except Exception as e:
-        logger.error(f"登录接口异常：{str(e)} | 请求数据：{request.get_json()}", exc_info=True)
+        logger.error(f"注册接口异常：{str(e)}")
         return jsonify({'code': 500, 'msg': '服务器内部错误'})
 
-@app.route('/api/get_user_info', methods=['POST'])
-def get_user_info():
-    """获取用户信息"""
+# 3. 获取创作历史（POST方法，修复405错误）
+@app.route('/api/get_history', methods=['POST'])
+def get_history():
     try:
-        data = request.get_json() or {}
-        user_id = data.get('user_id')
+        data = request.get_json()
+        user_id = data.get('user_id', '').strip()
         
         if not user_id:
-            logger.warn(f"获取用户信息失败：用户ID为空 | 请求数据：{data}")
-            return jsonify({'code': 400, 'msg': '用户ID不能为空'})
+            return jsonify({'code': 400, 'msg': 'user_id不能为空'})
         
         db = get_db()
         cursor = db.cursor()
+        cursor.execute('SELECT * FROM history WHERE user_id = ? ORDER BY create_time DESC', 
+                      (user_id,))
+        history_list = [dict(row) for row in cursor.fetchall()]
         
-        cursor.execute(
-            'SELECT vip_type, vip_expire_time, free_count FROM users WHERE user_id=?',
-            (user_id,)
-        )
-        user = cursor.fetchone()
-        
-        if user:
-            current_time = int(time.time())
-            vip_type = user['vip_type'] if (user['vip_expire_time'] > current_time) else 0
-            
-            logger.info(f"获取用户信息成功 | 用户ID：{user_id} | VIP类型：{vip_type}")
-            return jsonify({
-                'code': 200,
-                'data': {
-                    'vip_type': vip_type,
-                    'vip_expire_time': user['vip_expire_time'],
-                    'free_count': user['free_count']
-                }
-            })
-        else:
-            logger.warn(f"获取用户信息失败：用户不存在 | 用户ID：{user_id}")
-            return jsonify({'code': 404, 'msg': '用户不存在'})
+        return jsonify({'code': 200, 'data': history_list})
+    
     except Exception as e:
-        logger.error(f"获取用户信息接口异常：{str(e)} | 请求数据：{request.get_json()}", exc_info=True)
+        logger.error(f"获取历史接口异常：{str(e)}")
         return jsonify({'code': 500, 'msg': '服务器内部错误'})
 
-@app.route('/api/get_vip_packages', methods=['GET'])
-def get_vip_packages():
-    """获取VIP套餐列表"""
-    try:
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute('SELECT package_id, name, price, duration FROM vip_packages')
-        packages = cursor.fetchall()
-        
-        package_dict = {}
-        for pkg in packages:
-            package_dict[pkg['package_id']] = {
-                'name': pkg['name'],
-                'price': pkg['price'],
-                'duration': pkg['duration']
-            }
-        
-        logger.info("获取VIP套餐列表成功")
-        return jsonify({'code': 200, 'data': package_dict})
-    except Exception as e:
-        logger.error(f"获取VIP套餐接口异常：{str(e)}", exc_info=True)
-        return jsonify({'code': 500, 'msg': '服务器内部错误'})
-
-@app.route('/api/create_vip_order', methods=['POST'])
-def create_vip_order():
-    """创建VIP订单"""
-    try:
-        data = request.get_json() or {}
-        user_id = data.get('user_id')
-        package_id = data.get('package_id')
-        
-        if not user_id or not package_id:
-            logger.warn(f"创建订单失败：参数为空 | 请求数据：{data}")
-            return jsonify({'code': 400, 'msg': '用户ID和套餐ID不能为空'})
-        
-        order_no = generate_order_no(user_id)
-        
-        db = get_db()
-        cursor = db.cursor()
-        
-        cursor.execute('SELECT package_id FROM vip_packages WHERE package_id=?', (package_id,))
-        if not cursor.fetchone():
-            logger.warn(f"创建订单失败：套餐不存在 | 套餐ID：{package_id} | 用户ID：{user_id}")
-            return jsonify({'code': 404, 'msg': '套餐不存在'})
-        
-        cursor.execute(
-            'INSERT INTO orders (user_id, package_id, order_no) VALUES (?,?,?)',
-            (user_id, package_id, order_no)
-        )
-        db.commit()
-        
-        logger.info(f"创建VIP订单成功 | 订单号：{order_no} | 用户ID：{user_id} | 套餐ID：{package_id}")
-        return jsonify({
-            'code': 200,
-            'msg': '订单创建成功',
-            'data': {'order_no': order_no}
-        })
-    except Exception as e:
-        logger.error(f"创建VIP订单接口异常：{str(e)} | 请求数据：{request.get_json()}", exc_info=True)
-        return jsonify({'code': 500, 'msg': '服务器内部错误'})
-
-@app.route('/api/query_order_status', methods=['POST'])
-def query_order_status():
-    """查询订单状态"""
-    try:
-        data = request.get_json() or {}
-        order_no = data.get('order_no', '').strip()
-        
-        if not order_no:
-            logger.warn(f"查询订单失败：订单号为空 | 请求数据：{data}")
-            return jsonify({'code': 400, 'msg': '订单号不能为空'})
-        
-        db = get_db()
-        cursor = db.cursor()
-        
-        cursor.execute(
-            'SELECT order_id, user_id, package_id, status, pay_time FROM orders WHERE order_no=?',
-            (order_no,)
-        )
-        order = cursor.fetchone()
-        
-        if not order:
-            logger.warn(f"查询订单失败：订单不存在 | 订单号：{order_no}")
-            return jsonify({'code': 404, 'msg': '订单不存在'})
-        
-        if order['status'] == 0:
-            pay_time = int(time.time())
-            cursor.execute(
-                'UPDATE orders SET status=1, pay_time=? WHERE order_no=?',
-                (pay_time, order_no)
-            )
-            
-            cursor.execute('SELECT duration FROM vip_packages WHERE package_id=?', (order['package_id'],))
-            duration = cursor.fetchone()['duration']
-            
-            current_time = int(time.time())
-            cursor.execute(
-                'UPDATE users SET vip_type=?, vip_expire_time=? WHERE user_id=?',
-                (order['package_id'], current_time + duration, order['user_id'])
-            )
-            
-            db.commit()
-            logger.info(f"订单支付成功 | 订单号：{order_no} | 用户ID：{order['user_id']}")
-        
-        logger.info(f"查询订单状态成功 | 订单号：{order_no} | 状态：{order['status']}")
-        return jsonify({
-            'code': 200,
-            'data': {
-                'status': 1,
-                'pay_time': pay_time if 'pay_time' in locals() else order['pay_time']
-            }
-        })
-    except Exception as e:
-        logger.error(f"查询订单状态接口异常：{str(e)} | 请求数据：{request.get_json()}", exc_info=True)
-        return jsonify({'code': 500, 'msg': '服务器内部错误'})
-
+# 4. AI内容生成
 @app.route('/api/ai_create', methods=['POST'])
 def ai_create():
-    """AI内容生成（对接真实GPT-4o）"""
     try:
-        data = request.get_json() or {}
-        user_id = data.get('user_id')
-        req_type = data.get('req_type', '').strip()
+        data = request.get_json()
+        user_id = data.get('user_id', '').strip()
         prompt = data.get('prompt', '').strip()
-        platform = data.get('platform', '').strip()
-        tone = data.get('tone', '').strip()
+        type = data.get('type', 'short_video')
         
-        if not user_id or not req_type or not prompt:
-            logger.warn(f"AI生成失败：参数为空 | 请求数据：{data}")
+        if not user_id or not prompt:
             return jsonify({'code': 400, 'msg': '必要参数不能为空'})
         
+        # 模拟AI生成（实际项目替换为真实大模型调用）
+        if type == 'short_video':
+            content = f"""【短视频创作结果】
+需求：{prompt}
+生成内容：
+1. 标题：{prompt[:10]}+趣味吸睛后缀
+2. 文案：{prompt}，用生动有趣的语言扩展至200字左右
+3. 拍摄建议：搭配相关画面，语速适中，结尾引导互动
+（注：实际部署请对接真实AI接口）"""
+        else:
+            content = f"""【办公创作结果】
+需求：{prompt}
+生成内容：
+{prompt}，用正式/简洁的语言扩展至300字左右，逻辑清晰，重点突出
+（注：实际部署请对接真实AI接口）"""
+        
+        # 保存到历史记录
         db = get_db()
         cursor = db.cursor()
-        
         cursor.execute(
-            'SELECT vip_type, vip_expire_time, free_count FROM users WHERE user_id=?',
-            (user_id,)
-        )
-        user = cursor.fetchone()
-        
-        if not user:
-            logger.warn(f"AI生成失败：用户不存在 | 用户ID：{user_id}")
-            return jsonify({'code': 404, 'msg': '用户不存在'})
-        
-        current_time = int(time.time())
-        is_vip = user['vip_type'] > 0 and user['vip_expire_time'] > current_time
-        
-        # 非VIP检查免费次数
-        if not is_vip:
-            if user['free_count'] <= 0:
-                logger.warn(f"AI生成失败：免费次数用尽 | 用户ID：{user_id}")
-                return jsonify({'code': 403, 'msg': '今日免费次数已用尽，请开通VIP'})
-            
-            # 扣减免费次数
-            cursor.execute(
-                'UPDATE users SET free_count = free_count - 1 WHERE user_id=?',
-                (user_id,)
-            )
-            db.commit()
-        
-        # ========== 构建GPT-4o Prompt ==========
-        if req_type == "short_video":
-            system_prompt = f"""
-            你是一个专业的短视频内容创作专家，擅长{platform}平台的{tone}风格内容创作。
-            要求：
-            1. 内容完全贴合用户的创作需求，符合{platform}平台的流量规则和用户喜好
-            2. 风格严格按照{tone}来创作，语言口语化、有网感，符合短视频的节奏
-            3. 结构清晰，有开头钩子、主体内容、结尾引导，适合口播拍摄
-            4. 内容原创、合规，不涉及违规内容
-            """
-            user_prompt = f"创作需求：{prompt}"
-        else:
-            system_prompt = f"""
-            你是一个专业的办公文案创作专家，擅长{tone}风格的办公文档、文案创作。
-            要求：
-            1. 内容完全贴合用户的创作需求，逻辑清晰、结构严谨
-            2. 风格严格按照{tone}来创作，符合职场办公的规范
-            3. 内容专业、得体，符合商务场景的使用要求
-            4. 内容原创、合规，不涉及违规内容
-            """
-            user_prompt = f"创作需求：{prompt}"
-        
-        # 调用GPT-4o API
-        success, content = call_gpt4o_api(system_prompt, user_prompt)
-        if not success:
-            # 生成失败，回退扣减的免费次数
-            if not is_vip:
-                cursor.execute(
-                    'UPDATE users SET free_count = free_count + 1 WHERE user_id=?',
-                    (user_id,)
-                )
-                db.commit()
-            return jsonify({'code': 500, 'msg': content})
-        
-        # 保存生成记录
-        cursor.execute(
-            'INSERT INTO create_records (user_id, req_type, prompt, content) VALUES (?,?,?,?)',
-            (user_id, req_type, prompt, content)
+            'INSERT INTO history (user_id, type, prompt, content, create_time) VALUES (?, ?, ?, ?, ?)',
+            (user_id, type, prompt, content, int(datetime.now().timestamp()))
         )
         db.commit()
         
-        logger.info(f"AI生成成功 | 用户ID：{user_id} | 类型：{req_type} | 需求：{prompt[:20]}...")
         return jsonify({
             'code': 200,
             'data': {'content': content}
         })
+    
     except Exception as e:
-        logger.error(f"AI生成接口异常：{str(e)} | 请求数据：{request.get_json()}", exc_info=True)
+        logger.error(f"AI生成接口异常：{str(e)}")
         return jsonify({'code': 500, 'msg': '服务器内部错误'})
 
-@app.route('/api/get_history', methods=['POST'])
-def get_history():
-    """获取生成历史"""
+# 5. 获取会员套餐
+@app.route('/api/get_vip_packages', methods=['GET'])
+def get_vip_packages():
     try:
-        data = request.get_json() or {}
-        user_id = data.get('user_id')
-        
-        if not user_id:
-            logger.warn(f"获取历史失败：用户ID为空 | 请求数据：{data}")
-            return jsonify({'code': 400, 'msg': '用户ID不能为空'})
-        
         db = get_db()
         cursor = db.cursor()
+        cursor.execute('SELECT * FROM vip_packages')
+        packages = [dict(row) for row in cursor.fetchall()]
         
-        cursor.execute('''
-        SELECT req_type, prompt, content, create_time 
-        FROM create_records 
-        WHERE user_id=? 
-        ORDER BY create_time DESC
-        LIMIT 20
-        ''', (user_id,))
-        
-        records = cursor.fetchall()
-        history = []
-        for record in records:
-            create_time = time.strftime('%Y-%m-%d %H:%M', time.localtime(record['create_time']))
-            history.append({
-                'type': record['req_type'],
-                'prompt': record['prompt'],
-                'content': record['content'],
-                'time': create_time
-            })
-        
-        logger.info(f"获取生成历史成功 | 用户ID：{user_id} | 记录数：{len(history)}")
-        return jsonify({'code': 200, 'data': history})
+        return jsonify({'code': 200, 'data': packages})
+    
     except Exception as e:
-        logger.error(f"获取历史接口异常：{str(e)} | 请求数据：{request.get_json()}", exc_info=True)
+        logger.error(f"获取套餐接口异常：{str(e)}")
         return jsonify({'code': 500, 'msg': '服务器内部错误'})
 
-# ========== 6. 跨域支持 ==========
-@app.after_request
-def after_request(response):
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
-    return response
-
-# 在Flask应用启动时执行初始化
-if __name__ == '__main__':
-    # 初始化数据库
-    init_db()
+# 6. 创建会员订单
+@app.route('/api/create_vip_order', methods=['POST'])
+def create_vip_order():
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id', '').strip()
+        package_id = data.get('package_id', '').strip()
+        
+        if not user_id or not package_id:
+            return jsonify({'code': 400, 'msg': '参数不能为空'})
+        
+        # 模拟创建订单（实际项目对接支付网关）
+        order_id = f"order_{int(datetime.now().timestamp() * 1000)}"
+        return jsonify({
+            'code': 200,
+            'data': {
+                'order_id': order_id,
+                'pay_url': f'https://example.com/pay?order={order_id}'  # 模拟支付链接
+            }
+        })
     
-    # 启动应用（适配railway端口）
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    except Exception as e:
+        logger.error(f"创建订单接口异常：{str(e)}")
+        return jsonify({'code': 500, 'msg': '服务器内部错误'})
+
+# --------------------------
+# 全局错误处理
+# --------------------------
+@app.errorhandler(404)
+def page_not_found(e):
+    return jsonify({'code': 404, 'msg': '接口不存在'}), 404
+
+@app.errorhandler(405)
+def method_not_allowed(e):
+    return jsonify({'code': 405, 'msg': '请求方法不允许'}), 405
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return jsonify({'code': 500, 'msg': '服务器内部错误'}), 500
+
+# --------------------------
+# 启动入口
+# --------------------------
+if __name__ == '__main__':
+    init_db()  # 初始化数据库
+    port = int(os.environ.get('PORT', 8080))  # 兼容Railway端口
+    app.run(host='0.0.0.0', port=port, debug=False)  # 生产环境关闭debug
