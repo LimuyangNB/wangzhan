@@ -12,7 +12,7 @@ DB_CONFIG = {
     'user': "postgres",
     'password': "UDqEjxjaXGyXTdCyXTmWjneXNGAGnJXx",
     'database': "railway",
-    'port': 5432,
+    'port': 7030,
     'client_encoding': 'utf8'
 }
 
