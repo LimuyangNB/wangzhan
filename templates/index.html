@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>AI内容创作工具-手机端</title>
+    <style>
+        * {margin: 0; padding: 0; box-sizing: border-box; font-family: "PingFang SC", "Microsoft YaHei";}
+        :root {
+            --bg-main: #f8f9fa;
+            --bg-card: #ffffff;
+            --bg-btn-secondary: #fff;
+            --bg-primary-light: #e8edff;
+            --bg-vip-light: #fff8f0;
+            --border: #e5e7eb;
+            --text-main: #333333;
+            --text-secondary: #6b7280;
+            --text-gray: #9ca3af;
+            --text-white: #ffffff;
+            --text-vip: #ff9500;
+            --primary: #4299e1;
+            --vip-color: #ff9500;
+        }
+
+        .theme-black {--primary: #1f2937; --bg-primary-light: #e5e7eb; --text-main: #fff; --bg-main: #111827; --bg-card: #1f2937; --bg-btn-secondary: #374151; --border: #374151; --text-secondary: #d1d5db; --text-gray: #9ca3af;}
+        .theme-white {--primary: #6b7280; --bg-primary-light: #f3f4f6; --text-main: #111827; --bg-main: #ffffff; --bg-card: #f9fafb; --border: #e5e7eb;}
+        .theme-lightblue {--primary: #4299e1; --bg-primary-light: #e8edff;}
+        .theme-red {--primary: #ef4444; --bg-primary-light: #fee2e2;}
+        .theme-lightcyan {--primary: #06b6d4; --bg-primary-light: #e0f2fe;}
+
+        body {background: var(--bg-main); min-height: 100vh; padding-bottom: 80px; transition: all 0.3s ease; color: var(--text-main);}
+        .header {background: var(--primary); color: var(--text-white); padding: 15px 20px; text-align: center; font-size: 18px; font-weight: 600; position: fixed; top: 0; left: 0; right: 0; z-index: 99; transition: background 0.3s ease;}
+        .container {margin-top: 60px; padding: 15px;}
+
+        .user-setting {display: flex; justify-content: space-between; align-items: center; font-size: 14px; margin-bottom: 10px;}
+        .user-info {display: flex; align-items: center; gap: 8px; color: var(--text-secondary);}
+        .logout-btn {background: none; border: none; color: var(--primary); cursor: pointer; font-size: 14px; padding: 2px 4px;}
+        .theme-set {display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--primary); font-size: 14px;}
+        .theme-icon {font-size: 16px;}
+
+        .tab-bar {display: flex; background: var(--bg-card); border-radius: 8px; overflow: hidden; margin-bottom: 15px; border: 1px solid var(--border);}
+        .tab-item {flex: 1; text-align: center; padding: 12px 0; font-size: 16px; color: var(--text-main); border: none; background: none; cursor: pointer; transition: all 0.2s ease;}
+        .tab-item.active {background: var(--primary); color: var(--text-white);}
+
+        .input-box {background: var(--bg-card); border-radius: 8px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border);}
+        .result-box {background: var(--bg-card); border-radius: 8px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border);}
+        .form-item {margin-bottom: 12px;}
+        .form-item label {font-size: 14px; color: var(--text-secondary); margin-bottom: 5px; display: block;}
+        .form-item input, .form-item select, .form-item textarea {width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 15px; resize: none; background: var(--bg-card); color: var(--text-main); transition: all 0.2s ease;}
+        .form-item textarea {min-height: 100px;}
+        .form-item input:focus, .form-item select:focus, .form-item textarea:focus {outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px var(--bg-primary-light);}
+
+        .btn-group {display: flex; gap: 10px; margin-bottom: 15px;}
+        .btn {flex: 1; padding: 12px 0; border: none; border-radius: 6px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;}
+        .btn-primary {background: var(--primary); color: var(--text-white);}
+        .btn-primary:hover {opacity: 0.9;}
+        .btn-secondary {background: var(--bg-btn-secondary); color: var(--primary); border: 1px solid var(--primary);}
+        .btn-secondary:hover {background: var(--bg-primary-light);}
+
+        .result-title {font-size: 14px; color: var(--text-secondary); margin-bottom: 10px; display: flex; justify-content: space-between;}
+        .result-content {font-size: 15px; color: var(--text-main); line-height: 1.6; min-height: 80px; white-space: pre-wrap;}
+        .ai-tag {font-size: 12px; color: var(--text-gray); margin-top: 10px; text-align: right;}
+
+        .count-tip {font-size: 14px; text-align: center; margin-bottom: 10px; padding: 8px 0; border-radius: 6px;}
+        .count-tip.default {color: var(--text-secondary); background: #fee2e2; border: 1px solid #fecdd3;}
+        .count-tip.vip {color: var(--primary); background: var(--bg-primary-light); border: 1px solid var(--bg-primary-light);}
+
+        .history-list {background: var(--bg-card); border-radius: 8px; padding: 10px; border: 1px solid var(--border);}
+        .history-item {padding: 10px; border-bottom: 1px solid var(--border);}
+        .history-item:last-child {border: none;}
+        .history-time {font-size: 12px; color: var(--text-gray); margin-bottom: 5px;}
+        .history-prompt {font-size: 14px; color: var(--text-secondary); margin-bottom: 5px;}
+        .history-content {font-size: 14px; color: var(--text-main); line-height: 1.5;}
+
+        .footer-vip {position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-card); padding: 10px 15px; border-top: 1px solid var(--border); text-align: center; transition: all 0.3s ease;}
+        .vip-btn {background: var(--vip-color); color: var(--text-white); border: none; padding: 10px 30px; border-radius: 20px; font-size: 16px; cursor: pointer; transition: all 0.2s ease;}
+        .vip-btn:hover {opacity: 0.9;}
+
+        .hide {display: none !important;}
+
+        .vip-modal {position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; display: flex; align-items: center; justify-content: center;}
+        .vip-modal-content {width: 90%; max-width: 400px; background: var(--bg-card); border-radius: 12px; padding: 20px; border: 1px solid var(--border);}
+        .vip-modal-title {font-size: 18px; font-weight: 600; text-align: center; margin-bottom: 20px; color: var(--primary);}
+        .vip-package-list {margin-bottom: 20px;}
+        .vip-package-item {border: 2px solid var(--border); border-radius: 8px; padding: 15px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s ease;}
+        .vip-package-item.active {border-color: var(--vip-color); background: var(--bg-vip-light);}
+        .package-name {font-size: 16px; font-weight: 600; color: var(--text-main); margin-bottom: 5px;}
+        .package-price {font-size: 20px; color: var(--text-vip); font-weight: 700;}
+        .package-desc {font-size: 12px; color: var(--text-gray); margin-top: 5px;}
+        .vip-pay-btn {width: 100%; background: var(--vip-color); color: var(--text-white); border: none; padding: 15px 0; border-radius: 8px; font-size: 18px; font-weight: 600; cursor: pointer; margin-bottom: 10px;}
+        .vip-close-btn {width: 100%; background: var(--bg-btn-secondary); color: var(--text-secondary); border: 1px solid var(--border); padding: 10px 0; border-radius: 8px; font-size: 16px; cursor: pointer;}
+        .vip-status {font-size: 14px; color: var(--text-secondary); text-align: center; margin-top: 10px;}
+
+        .auth-modal {position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;}
+        .auth-modal-content {width: 90%; max-width: 400px; background: var(--bg-card); border-radius: 12px; padding: 20px; border: 1px solid var(--border);}
+        .auth-tabs {display: flex; margin-bottom: 20px;}
+        .auth-tab {flex: 1; text-align: center; padding: 10px 0; font-size: 16px; cursor: pointer; color: var(--text-secondary); transition: all 0.2s ease;}
+        .auth-tab.active {color: var(--primary); border-bottom: 2px solid var(--primary);}
+        .auth-form {display: none;}
+        .auth-form.active {display: block;}
+        .auth-btn {width: 100%; background: var(--primary); color: var(--text-white); border: none; padding: 12px 0; border-radius: 8px; font-size: 16px; margin-top: 10px; cursor: pointer;}
+        .auth-status {font-size: 14px; color: #ef4444; text-align: center; margin-top: 10px;}
+
+        .theme-modal {position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1001; display: flex; align-items: center; justify-content: center;}
+        .theme-modal-content {width: 90%; max-width: 380px; background: var(--bg-card); border-radius: 12px; padding: 25px 20px; border: 1px solid var(--border);}
+        .theme-modal-title {font-size: 18px; font-weight: 600; color: var(--text-main); margin-bottom: 20px; text-align: center;}
+        .theme-custom {display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border);}
+        .theme-custom label {font-size: 14px; color: var(--text-secondary);}
+        .color-picker {width: 40px; height: 40px; border: none; border-radius: 50%; cursor: pointer; background: transparent;}
+        .color-picker::-webkit-color-swatch-wrapper {padding: 0;}
+        .color-picker::-webkit-color-swatch {border: 2px solid var(--border); border-radius: 50%;}
+        .theme-preset {margin-bottom: 20px;}
+        .theme-preset-title {font-size: 14px; color: var(--text-secondary); margin-bottom: 15px;}
+        .theme-list {display: flex; flex-wrap: wrap; justify-content: space-around; gap: 12px;}
+        .theme-item {width: 50px; height: 50px; border-radius: 50%; cursor: pointer; border: 3px solid var(--border); transition: all 0.2s ease;}
+        .theme-item.active {border-color: var(--primary); box-shadow: 0 0 0 2px var(--bg-primary-light);}
+        .theme-black-item {background: #1f2937;}
+        .theme-white-item {background: #6b7280;}
+        .theme-lightblue-item {background: #4299e1;}
+        .theme-red-item {background: #ef4444;}
+        .theme-lightcyan-item {background: #06b6d4;}
+        .theme-confirm-btn {width: 100%; background: var(--primary); color: var(--text-white); border: none; padding: 12px 0; border-radius: 8px; font-size: 16px; cursor: pointer;}
+
+        .log-modal {position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1002; display: flex; align-items: center; justify-content: center;}
+        .log-modal-content {width: 90%; max-width: 400px; background: var(--bg-card); border-radius: 12px; padding: 20px; max-height: 80vh; overflow-y: auto;}
+        .log-modal-title {font-size: 18px; font-weight: 600; margin-bottom: 15px; color: var(--text-main); display: flex; justify-content: space-between; align-items: center;}
+        .log-close-btn {background: none; border: none; color: var(--text-gray); font-size: 20px; cursor: pointer;}
+        .log-content {font-size: 12px; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap; max-height: 60vh; overflow-y: auto; padding: 10px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 15px;}
+        .log-export-action {display: flex; gap: 10px;}
+        .log-export-action button {flex: 1; padding: 10px 0; border-radius: 6px; border: none; font-size: 14px; cursor: pointer;}
+        .log-clear-btn {background: #ef4444; color: white;}
+        .log-save-btn {background: var(--primary); color: white;}
+    </style>
+</head>
+<body id="appBody" class="theme-lightblue">
+    <div class="header">AI内容创作工具</div>
+
+    <div class="container">
+        <div class="user-setting hide" id="userSetting">
+            <div class="user-info">
+                欢迎，<span id="username"></span>
+                <button class="logout-btn" id="logoutBtn">退出</button>
+            </div>
+            <div class="theme-set" id="themeSet">
+                <span class="theme-icon">🎨</span>
+                <span>主题设置</span>
+            </div>
+        </div>
+
+        <div class="count-tip default hide" id="countTip">今日免费生成次数：3次</div>
+        <div class="count-tip vip hide" id="vipStatusTip">✅ 当前为月会员，有效期至2026-12-31，无限制生成</div>
+
+        <div class="tab-bar hide" id="mainTabBar">
+            <button class="tab-item active" data-tab="shortVideo">短/长视频创作</button>
+            <button class="tab-item" data-tab="office">办公创作</button>
+            <button class="tab-item" data-tab="history">历史记录</button>
+        </div>
+
+        <div class="tab-content hide" id="shortVideo">
+            <div class="input-box">
+                <div class="form-item">
+                    <label>发布平台</label>
+                    <select id="svPlatform">
+                        <option value="抖音">抖音</option>
+                        <option value="小红书">小红书</option>
+                        <option value="视频号">视频号</option>
+                        <option value="bilibili">bilibili</option>
+                    </select>
+                </div>
+                <div class="form-item">
+                    <label>内容调性</label>
+                    <select id="svTone">
+                        <option value="带货">带货</option>
+                        <option value="干货">干货</option>
+                        <option value="搞笑">搞笑</option>
+                        <option value="情感">情感</option>
+                        <option value="温柔">温柔</option>
+                    </select>
+                </div>
+                <div class="form-item">
+                    <div>输入创作需求（如：抖音美妆带货标题、15秒探店脚本）</div>
+                    <label>温馨提示：填入创作内容的相关信息以保证生成内容完美适配</label>
+                    <textarea id="svPrompt" placeholder="请输入你的创作需求..."></textarea>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" id="svVoice">语音输入</button>
+                <button class="btn btn-primary" id="svCreate">一键生成</button>
+            </div>
+            <div class="result-box">
+                <div class="result-title">生成结果</div>
+                <div class="result-content" id="svResult"></div>
+                <div class="ai-tag">AI生成内容，请勿用于违规场景</div>
+                <button class="btn btn-secondary" style="width:100%; margin-top:10px;" id="svCopy">复制内容</button>
+            </div>
+        </div>
+
+        <div class="tab-content hide" id="office">
+            <div class="input-box">
+                <div class="form-item">
+                    <label>内容调性</label>
+                    <select id="ofTone">
+                        <option value="正式">正式</option>
+                        <option value="简洁">简洁</option>
+                        <option value="商务">商务</option>
+                    </select>
+                </div>
+                <div class="form-item">
+                    <label>输入创作需求（如：运营周报、工作汇报、商务邮件）</label>
+                    <textarea id="ofPrompt" placeholder="请输入你的创作需求..."></textarea>
+                </div>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" id="ofVoice">语音输入</button>
+                <button class="btn btn-primary" id="ofCreate">一键生成</button>
+            </div>
+            <div class="result-box">
+                <div class="result-title">生成结果</div>
+                <div class="result-content" id="ofResult"></div>
+                <div class="ai-tag">AI生成内容，请勿用于违规场景</div>
+                <button class="btn btn-secondary" style="width:100%; margin-top:10px;" id="ofCopy">复制内容</button>
+            </div>
+        </div>
+
+        <div class="tab-content hide" id="history">
+            <div class="history-list" id="historyList">
+                <div style="text-align:center; color:var(--text-gray); padding:20px 0;">暂无生成记录，快去创作吧~</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-vip hide" id="footerVip">
+        <button class="vip-btn" id="vipBtn">开通会员 | 无限制生成</button>
+    </div>
+
+    <div class="vip-modal hide" id="vipModal">
+        <div class="vip-modal-content modal-inner"> <!-- 修复：添加modal-inner类 -->
+            <div class="vip-modal-title">开通VIP会员</div>
+            <div class="vip-package-list" id="vipPackageList">
+            </div>
+            <button class="vip-pay-btn" id="vipPayBtn">立即支付</button>
+            <button class="vip-close-btn" id="vipCloseBtn">关闭</button>
+            <div class="vip-status" id="vipPayStatus"></div>
+        </div>
+    </div>
+
+    <div class="auth-modal hide" id="authModal">
+        <div class="auth-modal-content modal-inner"> <!-- 修复：添加modal-inner类 -->
+            <div class="auth-tabs">
+                <div class="auth-tab active" data-tab="login">登录</div>
+                <div class="auth-tab" data-tab="register">注册</div>
+            </div>
+            <div class="auth-form active" id="loginForm">
+                <div class="form-item">
+                    <label>用户名</label>
+                    <input type="text" id="loginUsername" placeholder="请输入用户名">
+                </div>
+                <div class="form-item">
+                    <label>密码</label>
+                    <input type="password" id="loginPassword" placeholder="请输入密码">
+                </div>
+                <button class="auth-btn" id="loginBtn">登录</button>
+                <div class="auth-status" id="loginStatus"></div>
+            </div>
+            <div class="auth-form" id="registerForm">
+                <div class="form-item">
+                    <label>用户名</label>
+                    <input type="text" id="regUsername" placeholder="请输入用户名">
+                </div>
+                <div class="form-item">
+                    <label>密码</label>
+                    <input type="password" id="regPassword" placeholder="请输入密码">
+                </div>
+                <div class="form-item">
+                    <label>手机号（选填）</label>
+                    <input type="tel" id="regPhone" placeholder="请输入手机号">
+                </div>
+                <button class="auth-btn" id="registerBtn">注册</button>
+                <div class="auth-status" id="registerStatus"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="theme-modal hide" id="themeModal">
+        <div class="theme-modal-content modal-inner"> <!-- 修复：添加modal-inner类 -->
+            <div class="theme-modal-title">自定义主题色</div>
+            <div class="theme-custom">
+                <label for="colorPicker">手动选择：</label>
+                <input type="color" id="colorPicker" class="color-picker" value="#4299e1">
+            </div>
+            <div class="theme-preset">
+                <div class="theme-preset-title">预设颜色（点击选择）</div>
+                <div class="theme-list">
+                    <div class="theme-item theme-black-item" data-theme="theme-black" title="黑色"></div>
+                    <div class="theme-item theme-white-item" data-theme="theme-white" title="白色"></div>
+                    <div class="theme-item theme-lightblue-item active" data-theme="theme-lightblue" title="浅蓝"></div>
+                    <div class="theme-item theme-red-item" data-theme="theme-red" title="红色"></div>
+                    <div class="theme-item theme-lightcyan-item" data-theme="theme-lightcyan" title="淡青色"></div>
+                </div>
+            </div>
+            <button class="theme-confirm-btn" id="themeConfirmBtn">确认应用</button>
+        </div>
+    </div>
+
+    <div class="log-modal hide" id="logModal">
+        <div class="log-modal-content modal-inner"> <!-- 修复：添加modal-inner类 -->
+            <div class="log-modal-title">
+                <span>客户端日志</span>
+                <button class="log-close-btn" id="logCloseBtn">×</button>
+            </div>
+            <div class="log-content" id="logContent"></div>
+            <div class="log-export-action">
+                <button class="log-clear-btn" id="logClearBtn">清空日志</button>
+                <button class="log-save-btn" id="logSaveBtn">导出日志</button>
+            </div>
+        </div>
+    </div>
+
+    <button class="log-export-btn hide" id="logExportBtn">📝</button>
+
+    <script>
+        // 日志工具类
+        class ClientLogger {
+            constructor() {
+                this.LOG_STORAGE_KEY = 'ai_creator_client_logs';
+                this.MAX_LOG_COUNT = 1000;
+                this.logs = this.loadLogs();
+            }
+
+            loadLogs() {
+                try {
+                    const logsStr = localStorage.getItem(this.LOG_STORAGE_KEY);
+                    return logsStr ? JSON.parse(logsStr) : [];
+                } catch (e) {
+                    console.error('加载日志失败：', e);
+                    return [];
+                }
+            }
+
+            saveLogs() {
+                try {
+                    if (this.logs.length > this.MAX_LOG_COUNT) {
+                        this.logs = this.logs.slice(-this.MAX_LOG_COUNT); // 修复：切片后保留最新1000条
+                    }
+                    localStorage.setItem(this.LOG_STORAGE_KEY, JSON.stringify(this.logs));
+                } catch (e) {
+                    console.error('保存日志失败：', e);
+                }
+            }
+
+            getTimestamp() {
+                // 修复：手动格式化时间戳，兼容所有浏览器
+                const now = new Date();
+                const pad = n => n.toString().padStart(2, '0');
+                return `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+            }
+
+            log(level, module, message, data = null) {
+                const logItem = {
+                    time: this.getTimestamp(),
+                    level: level,
+                    module: module,
+                    message: message,
+                    data: data
+                };
+                
+                this.logs.push(logItem);
+                this.saveLogs();
+                
+                const logStr = `[${logItem.time}] [${level}] [${module}] ${message}`;
+                switch (level) {
+                    case 'ERROR':
+                        console.error(logStr, data || '');
+                        break;
+                    case 'WARN':
+                        console.warn(logStr, data || '');
+                        break;
+                    default:
+                        console.log(logStr, data || '');
+                }
+            }
+
+            info(module, message, data = null) {
+                this.log('INFO', module, message, data);
+            }
+
+            warn(module, message, data = null) {
+                this.log('WARN', module, message, data);
+            }
+
+            error(module, message, data = null) {
+                this.log('ERROR', module, message, data);
+            }
+
+            getFormattedLogs() {
+                return this.logs.map(item => {
+                    let dataStr = item.data ? JSON.stringify(item.data, null, 2) : '';
+                    return `[${item.time}] [${item.level}] [${module}] ${item.message} ${dataStr}`;
+                }).join('\n');
+            }
+
+            clearLogs() {
+                this.logs = [];
+                localStorage.removeItem(this.LOG_STORAGE_KEY);
+                this.info('日志工具', '日志已清空');
+            }
+
+            exportLogs() {
+                const logText = this.getFormattedLogs();
+                const blob = new Blob([logText], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `ai_creator_client_${new Date().getTime()}.log`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                this.info('日志工具', '日志导出成功');
+            }
+        }
+
+        // 全局变量
+        let userInfo = null;
+        let isVip = false;
+        let selectedTheme = "theme-lightblue";
+        let customPrimaryColor = "#4299e1";
+        let selectedPackageId = 1;
+        let recognition = null; // 修复：全局语音识别实例，避免重复创建
+        const logger = new ClientLogger();
+
+        // 页面加载
+        window.onload = function() {
+            logger.info('应用初始化', '页面开始加载');
+            initApp();
+        };
+
+        // 初始化应用
+        function initApp() {
+            try {
+                // 先清空可能的旧数据，避免解析错误
+                fixOldStorageData();
+                
+                loadLocalTheme();
+                autoLogin();
+                bindAllEvents();
+                
+                if (userInfo) {
+                    const logBtn = document.getElementById("logExportBtn");
+                    if (logBtn) logBtn.classList.remove("hide");
+                }
+                
+                logger.info('应用初始化', '初始化完成');
+            } catch (e) {
+                logger.error('应用初始化', '初始化失败', e);
+                // 强制显示登录弹窗
+                const authModal = document.getElementById("authModal");
+                if (authModal) authModal.classList.remove("hide");
+            }
+        }
+
+        // 修复旧的存储数据
+        function fixOldStorageData() {
+            try {
+                // 检查并修复主题数据
+                const themeData = localStorage.getItem("ai_creator_theme");
+                if (themeData) {
+                    try {
+                        JSON.parse(themeData);
+                    } catch (e) {
+                        // 旧数据是字符串，转为新格式
+                        localStorage.setItem("ai_creator_theme", JSON.stringify({
+                            preset: themeData,
+                            customColor: "#4299e1"
+                        }));
+                        logger.warn('数据修复', '修复旧主题数据', themeData);
+                    }
+                }
+                
+                // 检查用户数据
+                const userData = localStorage.getItem("ai_creator_user");
+                if (userData) {
+                    try {
+                        JSON.parse(userData);
+                    } catch (e) {
+                        localStorage.removeItem("ai_creator_user");
+                        logger.warn('数据修复', '删除损坏的用户数据');
+                    }
+                }
+            } catch (e) {
+                logger.error('数据修复', '修复失败', e);
+            }
+        }
+
+        // 自动登录
+        function autoLogin() {
+            try {
+                const savedUser = localStorage.getItem("ai_creator_user");
+                const authModal = document.getElementById("authModal");
+                
+                if (savedUser) {
+                    try {
+                        userInfo = JSON.parse(savedUser);
+                        // 修复：校验用户信息完整性
+                        if (!userInfo.user_id || !userInfo.username) {
+                            throw new Error("用户信息不完整");
+                        }
+                        if (authModal) authModal.classList.add("hide");
+                        showMainUI();
+                        getUserInfo();
+                        logger.info('自动登录', '登录成功', { username: userInfo.username, user_id: userInfo.user_id });
+                    } catch (e) {
+                        localStorage.removeItem("ai_creator_user");
+                        if (authModal) authModal.classList.remove("hide");
+                        logger.error('自动登录', '解析用户信息失败', e);
+                    }
+                } else {
+                    if (authModal) authModal.classList.remove("hide");
+                    logger.info('自动登录', '无本地登录信息，显示登录弹窗');
+                }
+            } catch (e) {
+                logger.error('自动登录', '自动登录异常', e);
+                const authModal = document.getElementById("authModal");
+                if (authModal) authModal.classList.remove("hide");
+            }
+        }
+
+        // 加载本地主题
+        function loadLocalTheme() {
+            try {
+                const savedThemeData = localStorage.getItem("ai_creator_theme");
+                let themeData = {
+                    preset: "theme-lightblue",
+                    customColor: "#4299e1"
+                };
+                
+                if (savedThemeData) {
+                    try {
+                        themeData = JSON.parse(savedThemeData);
+                    } catch (e) {
+                        logger.warn('主题加载', '兼容旧版主题格式', savedThemeData);
+                        themeData.preset = savedThemeData;
+                        themeData.customColor = "#4299e1";
+                    }
+                }
+                
+                selectedTheme = themeData.preset || "theme-lightblue";
+                customPrimaryColor = themeData.customColor || "#4299e1";
+                
+                applyTheme(selectedTheme, customPrimaryColor);
+                
+                const colorPicker = document.getElementById("colorPicker");
+                if (colorPicker) colorPicker.value = customPrimaryColor;
+                
+                const themeItems = document.querySelectorAll(".theme-item");
+                if (themeItems) {
+                    themeItems.forEach(item => {
+                        item.classList.remove("active");
+                        if (item.dataset.theme === selectedTheme) {
+                            item.classList.add("active");
+                        }
+                    });
+                }
+                
+                logger.info('主题加载', '主题加载完成', { selectedTheme, customPrimaryColor });
+            } catch (e) {
+                logger.error('主题加载', '主题加载失败', e);
+            }
+        }
+
+        // 应用主题
+        function applyTheme(presetTheme, customColor) {
+            try {
+                const appBody = document.getElementById("appBody");
+                if (!appBody) return;
+                
+                appBody.classList.remove("theme-black", "theme-white", "theme-lightblue", "theme-red", "theme-lightcyan");
+                appBody.classList.add(presetTheme);
+                
+                if (customColor) {
+                    document.documentElement.style.setProperty('--primary', customColor);
+                    const lightColor = `${customColor}20`;
+                    document.documentElement.style.setProperty('--bg-primary-light', lightColor);
+                }
+                
+                logger.info('主题应用', '主题应用成功', { presetTheme, customColor });
+            } catch (e) {
+                logger.error('主题应用', '主题应用失败', e);
+            }
+        }
+
+        // 保存主题
+        function saveTheme(presetTheme, customColor) {
+            try {
+                const themeData = {
+                    preset: presetTheme,
+                    customColor: customColor
+                };
+                localStorage.setItem("ai_creator_theme", JSON.stringify(themeData));
+                selectedTheme = presetTheme;
+                customPrimaryColor = customColor;
+                logger.info('主题保存', '主题保存成功', themeData);
+            } catch (e) {
+                logger.error('主题保存', '主题保存失败', e);
+            }
+        }
+
+        // 显示主界面
+        function showMainUI() {
+            try {
+                const userSetting = document.getElementById("userSetting");
+                const username = document.getElementById("username");
+                const mainTabBar = document.getElementById("mainTabBar");
+                const footerVip = document.getElementById("footerVip");
+                const shortVideo = document.getElementById("shortVideo");
+                const logExportBtn = document.getElementById("logExportBtn");
+                
+                if (userSetting) userSetting.classList.remove("hide");
+                if (username) username.innerText = userInfo.username || "用户";
+                if (mainTabBar) mainTabBar.classList.remove("hide");
+                if (footerVip) footerVip.classList.remove("hide");
+                if (shortVideo) shortVideo.classList.remove("hide");
+                if (logExportBtn) logExportBtn.classList.remove("hide");
+                
+                getVipPackages();
+                logger.info('主界面', '主界面显示成功', { username: userInfo.username });
+            } catch (e) {
+                logger.error('主界面', '主界面显示失败', e);
+            }
+        }
+
+        // 绑定所有事件
+        function bindAllEvents() {
+            try {
+                bindAuthTabEvent();
+                bindAuthBtnEvent();
+                bindLogoutEvent();
+                bindTabEvent();
+                bindCreateEvent();
+                bindVoiceEvent();
+                bindCopyEvent();
+                bindVipEvent();
+                bindCloseBtnEvent();
+                bindThemeEvent();
+                bindLogEvents();
+                
+                logger.info('事件绑定', '所有事件绑定完成');
+            } catch (e) {
+                logger.error('事件绑定', '事件绑定失败', e);
+            }
+        }
+
+        // 绑定登录/注册标签事件
+        function bindAuthTabEvent() {
+            const authTabs = document.querySelectorAll(".auth-tab");
+            const authForms = document.querySelectorAll(".auth-form");
+            
+            if (!authTabs || !authForms) return;
+            
+            authTabs.forEach(tab => {
+                tab.onclick = function() {
+                    authTabs.forEach(t => t.classList.remove("active"));
+                    this.classList.add("active");
+                    const tabName = this.dataset.tab;
+                    authForms.forEach(f => f.classList.remove("active"));
+                    
+                    const form = document.getElementById(`${tabName}Form`);
+                    const status = document.getElementById(`${tabName}Status`);
+                    
+                    if (form) form.classList.add("active");
+                    if (status) status.innerText = "";
+                }
+            });
+        }
+
+        // 绑定登录/注册按钮事件
+        function bindAuthBtnEvent() {
+            // 登录按钮
+            const loginBtn = document.getElementById("loginBtn");
+            if (loginBtn) {
+                loginBtn.onclick = function() {
+                    try {
+                        const username = document.getElementById("loginUsername")?.value.trim() || '';
+                        const password = document.getElementById("loginPassword")?.value.trim() || '';
+                        const loginStatus = document.getElementById("loginStatus");
+                        
+                        if (loginStatus) loginStatus.innerText = "";
+                        
+                        if (!username || !password) {
+                            if (loginStatus) loginStatus.innerText = "用户名/密码不能为空";
+                            logger.warn('登录', '用户名/密码为空', { username });
+                            return;
+                        }
+                        
+                        // 修复：使用相对路径，添加响应状态校验
+                        fetch('/api/login', {
+                            method: "POST",
+                            headers: {"Content-Type": "application/json"},
+                            body: JSON.stringify({username, password})
+                        })
+                        .then(res => {
+                            if (!res.ok) throw new Error(`服务器错误：${res.status}`);
+                            return res.json();
+                        })
+                        .then(data => {
+                            // 修复：判断code=0（后端通用成功码）
+                            if (data.code === 0) {
+                                userInfo = {
+                                    user_id: data.data.user_id,
+                                    username: data.data.username,
+                                    vip_type: data.data.vip_type,
+                                    vip_expire_time: data.data.vip_expire_time
+                                };
+                                localStorage.setItem("ai_creator_user", JSON.stringify(userInfo));
+                                autoLogin();
+                                logger.info('登录', '登录成功', { username, user_id: data.data.user_id });
+                            } else {
+                                if (loginStatus) loginStatus.innerText = data.msg;
+                                logger.warn('登录', '登录失败', { username, msg: data.msg });
+                            }
+                        })
+                        .catch(err => {
+                            if (loginStatus) loginStatus.innerText = "服务器内部错误，请重试";
+                            logger.error('登录', '登录请求异常', err);
+                        });
+                    } catch (e) {
+                        logger.error('登录', '登录按钮点击异常', e);
+                    }
+                };
+            }
+            
+            // 注册按钮
+            const registerBtn = document.getElementById("registerBtn");
+            if (registerBtn) {
+                registerBtn.onclick = function() {
+                    try {
+                        const username = document.getElementById("regUsername")?.value.trim() || '';
+                        const password = document.getElementById("regPassword")?.value.trim() || '';
+                        const phone = document.getElementById("regPhone")?.value.trim() || '';
+                        const registerStatus = document.getElementById("registerStatus");
+                        
+                        if (registerStatus) registerStatus.innerText = "";
+                        
+                        if (!username || !password) {
+                            if (registerStatus) registerStatus.innerText = "用户名/密码不能为空";
+                            logger.warn('注册', '用户名/密码为空', { username });
+                            return;
+                        }
+                        
+                        // 修复：使用相对路径，添加响应状态校验
+                        fetch('/api/register', {
+                            method: "POST",
+                            headers: {"Content-Type": "application/json"},
+                            body: JSON.stringify({username, password, phone})
+                        })
+                        .then(res => {
+                            if (!res.ok) throw new Error(`服务器错误：${res.status}`);
+                            return res.json();
+                        })
+                        .then(data => {
+                            // 修复：判断code=0
+                            if (data.code === 0) {
+                                if (registerStatus) registerStatus.innerText = "注册成功，请登录";
+                                document.querySelectorAll(".auth-tab")[0]?.click();
+                                logger.info('注册', '注册成功', { username, phone });
+                            } else {
+                                if (registerStatus) registerStatus.innerText = data.msg;
+                                logger.warn('注册', '注册失败', { username, msg: data.msg });
+                            }
+                        })
+                        .catch(err => {
+                            if (registerStatus) registerStatus.innerText = "服务器内部错误，请重试";
+                            logger.error('注册', '注册请求异常', err);
+                        });
+                    } catch (e) {
+                        logger.error('注册', '注册按钮点击异常', e);
+                    }
+                };
+            }
+        }
+
+        // 绑定退出登录事件
+        function bindLogoutEvent() {
+            const logoutBtn = document.getElementById("logoutBtn");
+            if (logoutBtn) {
+                logoutBtn.onclick = function() {
+                    if (confirm("确定要退出登录吗？退出后将取消自动登录")) {
+                        localStorage.removeItem("ai_creator_user");
+                        userInfo = null;
+                        isVip = false;
+                        
+                        document.getElementById("userSetting")?.classList.add("hide");
+                        document.getElementById("mainTabBar")?.classList.add("hide");
+                        document.getElementById("footerVip")?.classList.add("hide");
+                        document.querySelectorAll(".tab-content").forEach(c => c.classList.add("hide"));
+                        document.getElementById("authModal")?.classList.remove("hide");
+                        
+                        logger.info('退出登录', '用户退出登录');
+                    }
+                };
+            }
+        }
+
+        // 绑定选项卡事件
+        function bindTabEvent() {
+            const tabItems = document.querySelectorAll(".tab-item");
+            const tabContents = document.querySelectorAll(".tab-content");
+            
+            if (!tabItems || !tabContents) return;
+            
+            tabItems.forEach(item => {
+                item.onclick = function() {
+                    tabItems.forEach(i => i.classList.remove("active"));
+                    this.classList.add("active");
+                    const tab = this.dataset.tab;
+                    
+                    tabContents.forEach(c => c.classList.add("hide"));
+                    const content = document.getElementById(tab);
+                    if (content) content.classList.remove("hide");
+                    
+                    if (tab === "history") getHistory();
+                }
+            });
+        }
+
+        // 绑定生成事件
+        function bindCreateEvent() {
+            // 短视频生成
+            const svCreate = document.getElementById("svCreate");
+            if (svCreate) {
+                svCreate.onclick = function() {
+                    try {
+                        const prompt = document.getElementById("svPrompt")?.value.trim() || '';
+                        if (!prompt) {
+                            alert("请输入创作需求！");
+                            logger.warn('AI生成', '生成需求为空');
+                            return;
+                        }
+                        
+                        const params = {
+                            user_id: userInfo.user_id,
+                            req_type: "short_video",
+                            prompt: prompt,
+                            platform: document.getElementById("svPlatform")?.value || '抖音',
+                            tone: document.getElementById("svTone")?.value || '带货'
+                        };
+                        
+                        logger.info('AI生成', '开始短视频生成', { prompt: prompt.substring(0, 20) });
+                        aiCreateRequest(params, "svResult");
+                    } catch (e) {
+                        logger.error('AI生成', '短视频生成按钮点击异常', e);
+                    }
+                };
+            }
+            
+            // 办公生成
+            const ofCreate = document.getElementById("ofCreate");
+            if (ofCreate) {
+                ofCreate.onclick = function() {
+                    try {
+                        const prompt = document.getElementById("ofPrompt")?.value.trim() || '';
+                        if (!prompt) {
+                            alert("请输入创作需求！");
+                            logger.warn('AI生成', '办公生成需求为空');
+                            return;
+                        }
+                        
+                        const params = {
+                            user_id: userInfo.user_id,
+                            req_type: "office",
+                            prompt: prompt,
+                            platform: "通用",
+                            tone: document.getElementById("ofTone")?.value || '正式'
+                        };
+                        
+                        logger.info('AI生成', '开始办公生成', { prompt: prompt.substring(0, 20) });
+                        aiCreateRequest(params, "ofResult");
+                    } catch (e) {
+                        logger.error('AI生成', '办公生成按钮点击异常', e);
+                    }
+                };
+            }
+        }
+
+        // AI生成请求
+        function aiCreateRequest(params, resultId) {
+            // 修复：使用相对路径，添加响应状态校验
+            fetch('/api/ai_create', {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(params)
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(`服务器错误：${res.status}`);
+                return res.json();
+            })
+            .then(data => {
+                // 修复：判断code=0
+                if (data.code === 0) {
+                    const result = document.getElementById(resultId);
+                    if (result) result.innerText = data.data.content;
+                    getUserInfo();
+                    alert("生成成功！");
+                    logger.info('AI生成', '生成成功', { req_type: params.req_type });
+                } else if (data.code === 403) {
+                    alert(data.msg);
+                    if (!isVip) openVipModal();
+                    logger.warn('AI生成', '免费次数用尽', { user_id: params.user_id });
+                } else {
+                    alert(data.msg);
+                    logger.warn('AI生成', '生成失败', { msg: data.msg });
+                }
+            })
+            .catch(err => {
+                logger.error('AI生成', '生成请求异常', err);
+                alert('生成失败：服务器内部错误，请重试');
+            });
+        }
+
+        // 绑定语音输入事件
+        function bindVoiceEvent() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert("你的浏览器不支持语音输入，请更换手机浏览器！");
+                return;
+            }
+            // 修复：全局唯一实例，避免重复创建
+            recognition = recognition || new SpeechRecognition();
+            recognition.lang = "zh-CN";
+            recognition.interimResults = false;
+
+            // 短视频语音
+            const svVoice = document.getElementById("svVoice");
+            if (svVoice) {
+                svVoice.onclick = function() {
+                    startVoiceRecognition(recognition, "svPrompt");
+                };
+            }
+            
+            // 办公语音
+            const ofVoice = document.getElementById("ofVoice");
+            if (ofVoice) {
+                ofVoice.onclick = function() {
+                    startVoiceRecognition(recognition, "ofPrompt");
+                };
+            }
+        }
+
+        // 语音识别
+        function startVoiceRecognition(recog, inputId) {
+            try {
+                recog.start();
+                alert("正在识别语音，请说话...");
+                recog.onresult = function(event) {
+                    const text = event.results[0][0].transcript;
+                    const input = document.getElementById(inputId);
+                    if (input) input.value = text;
+                    alert("语音识别完成！");
+                    logger.info('语音输入', '语音识别成功', { inputId, text: text.substring(0, 20) });
+                };
+                recog.onerror = function(err) {
+                    alert("语音识别失败：" + err.message);
+                    logger.error('语音输入', '语音识别失败', err);
+                };
+            } catch (e) {
+                logger.error('语音输入', '启动语音识别失败', e);
+                alert("语音输入初始化失败，请重试！");
+            }
+        }
+
+        // 绑定复制事件
+        function bindCopyEvent() {
+            // 短视频复制
+            const svCopy = document.getElementById("svCopy");
+            if (svCopy) {
+                svCopy.onclick = function() {
+                    const text = document.getElementById("svResult")?.innerText || '';
+                    if (!text) {
+                        alert("暂无生成内容可复制！");
+                        return;
+                    }
+                    copyToClipboard(text);
+                };
+            }
+            
+            // 办公复制
+            const ofCopy = document.getElementById("ofCopy");
+            if (ofCopy) {
+                ofCopy.onclick = function() {
+                    const text = document.getElementById("ofResult")?.innerText || '';
+                    if (!text) {
+                        alert("暂无生成内容可复制！");
+                        return;
+                    }
+                    copyToClipboard(text);
+                };
+            }
+        }
+
+        // 复制到剪贴板
+        function copyToClipboard(text) {
+            try {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert("复制成功！");
+                    logger.info('复制功能', '复制内容成功', { length: text.length });
+                }).catch(err => {
+                    // 降级方案
+                    const textArea = document.createElement("textarea");
+                    textArea.value = text;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(textArea);
+                    alert("复制成功！");
+                    logger.info('复制功能', '降级复制成功', { length: text.length });
+                });
+            } catch (e) {
+                logger.error('复制功能', '复制失败', e);
+                alert("复制失败，请手动复制！");
+            }
+        }
+
+        // 获取VIP套餐
+        function getVipPackages() {
+            // 修复：使用相对路径，添加响应状态校验
+            fetch('/api/get_vip_packages', {
+                method: "GET",
+                headers: {"Content-Type": "application/json"}
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(`服务器错误：${res.status}`);
+                return res.json();
+            })
+            .then(data => {
+                // 修复：判断code=0
+                if (data.code === 0) {
+                    const packageList = document.getElementById("vipPackageList");
+                    if (!packageList) return;
+                    
+                    packageList.innerHTML = "";
+                    Object.keys(data.data).forEach(key => {
+                        const pkg = data.data[key];
+                        const days = Math.floor(pkg.duration / (24 * 3600));
+                        const item = document.createElement("div");
+                        item.className = key == 1 ? "vip-package-item active" : "vip-package-item";
+                        item.dataset.id = key;
+                        item.innerHTML = `
+                            <div class="package-name">${pkg.name}</div>
+                            <div class="package-price">¥${pkg.price}</div>
+                            <div class="package-desc">有效期${days}天，无限制生成</div>
+                        `;
+                        item.onclick = function() {
+                            document.querySelectorAll(".vip-package-item").forEach(i => i.classList.remove("active"));
+                            this.classList.add("active");
+                            selectedPackageId = this.dataset.id;
+                        };
+                        packageList.appendChild(item);
+                    });
+                    
+                    logger.info('VIP套餐', '获取套餐列表成功', { count: Object.keys(data.data).length });
+                }
+            })
+            .catch(err => {
+                logger.error('VIP套餐', '获取套餐失败', err);
+            });
+        }
+
+        // 打开VIP弹窗
+        function openVipModal() {
+            const vipModal = document.getElementById("vipModal");
+            if (vipModal) vipModal.classList.remove("hide");
+            logger.info('VIP弹窗', '打开VIP弹窗');
+        }
+
+        // 绑定VIP事件
+        function bindVipEvent() {
+            // 开通VIP按钮
+            const vipBtn = document.getElementById("vipBtn");
+            if (vipBtn) {
+                vipBtn.onclick = function() {
+                    openVipModal();
+                };
+            }
+            
+            // 支付按钮
+            const vipPayBtn = document.getElementById("vipPayBtn");
+            if (vipPayBtn) {
+                vipPayBtn.onclick = function() {
+                    const payStatus = document.getElementById("vipPayStatus");
+                    if (payStatus) payStatus.innerText = "正在创建订单...";
+                    
+                    const params = {
+                        user_id: userInfo.user_id,
+                        package_id: selectedPackageId
+                    };
+                    
+                    // 修复：使用相对路径，添加响应状态校验
+                    fetch('/api/create_vip_order', {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify(params)
+                    })
+                    .then(res => {
+                        if (!res.ok) throw new Error(`服务器错误：${res.status}`);
+                        return res.json();
+                    })
+                    .then(data => {
+                        // 修复：判断code=0
+                        if (data.code === 0) {
+                            // 模拟支付
+                            if (payStatus) payStatus.innerText = "订单创建成功，正在模拟支付...";
+                            
+                            setTimeout(() => {
+                                fetch('/api/query_order_status', {
+                                    method: "POST",
+                                    headers: {"Content-Type": "application/json"},
+                                    body: JSON.stringify({order_no: data.data.order_no})
+                                })
+                                .then(res => {
+                                    if (!res.ok) throw new Error(`服务器错误：${res.status}`);
+                                    return res.json();
+                                })
+                                .then(payData => {
+                                    // 修复：判断code=0
+                                    if (payData.code === 0) {
+                                        if (payStatus) payStatus.innerText = "支付成功！正在刷新VIP状态...";
+                                        getUserInfo();
+                                        setTimeout(() => {
+                                            const vipModal = document.getElementById("vipModal");
+                                            if (vipModal) vipModal.classList.add("hide");
+                                            alert("VIP开通成功！");
+                                        }, 1000);
+                                    }
+                                })
+                                .catch(err => {
+                                    logger.error('VIP支付', '查询订单状态失败', err);
+                                    if (payStatus) payStatus.innerText = "查询订单失败，请重试！";
+                                });
+                            }, 1500);
+                        } else {
+                            if (payStatus) payStatus.innerText = "创建订单失败：" + data.msg;
+                        }
+                    })
+                    .catch(err => {
+                        logger.error('VIP支付', '创建订单失败', err);
+                        if (payStatus) payStatus.innerText = "服务器内部错误，请重试！";
+                    });
+                };
+            }
+        }
+
+        // 绑定关闭按钮事件
+        function bindCloseBtnEvent() {
+            // VIP关闭按钮
+            const vipCloseBtn = document.getElementById("vipCloseBtn");
+            if (vipCloseBtn) {
+                vipCloseBtn.onclick = function() {
+                    const vipModal = document.getElementById("vipModal");
+                    if (vipModal) vipModal.classList.add("hide");
+                    logger.info('VIP弹窗', '关闭VIP弹窗');
+                };
+            }
+            
+            // 日志关闭按钮
+            const logCloseBtn = document.getElementById("logCloseBtn");
+            if (logCloseBtn) {
+                logCloseBtn.onclick = function() {
+                    const logModal = document.getElementById("logModal");
+                    if (logModal) logModal.classList.add("hide");
+                    logger.info('日志工具', '关闭日志弹窗');
+                };
+            }
+            
+            // 点击模态框背景关闭
+            const modals = document.querySelectorAll(".vip-modal, .auth-modal, .theme-modal, .log-modal");
+            modals.forEach(modal => {
+                modal.onclick = function(e) {
+                    // 修复：只点击背景（非内容区）才关闭
+                    if (!e.target.closest('.modal-inner')) {
+                        this.classList.add("hide");
+                        logger.info('模态框', '点击背景关闭弹窗', { modal: this.id });
+                    }
+                };
+            });
+        }
+
+        // 绑定主题事件
+        function bindThemeEvent() {
+            // 打开主题设置
+            const themeSet = document.getElementById("themeSet");
+            if (themeSet) {
+                themeSet.onclick = function() {
+                    const themeModal = document.getElementById("themeModal");
+                    if (themeModal) themeModal.classList.remove("hide");
+                    logger.info('主题设置', '打开主题设置弹窗');
+                };
+            }
+            
+            // 选择预设主题
+            const themeItems = document.querySelectorAll(".theme-item");
+            if (themeItems) {
+                themeItems.forEach(item => {
+                    item.onclick = function() {
+                        themeItems.forEach(i => i.classList.remove("active"));
+                        this.classList.add("active");
+                        selectedTheme = this.dataset.theme;
+                        const colorPicker = document.getElementById("colorPicker");
+                        if (colorPicker) {
+                            // 预设主题对应颜色
+                            const colorMap = {
+                                "theme-black": "#1f2937",
+                                "theme-white": "#6b7280",
+                                "theme-lightblue": "#4299e1",
+                                "theme-red": "#ef4444",
+                                "theme-lightcyan": "#06b6d4"
+                            };
+                            colorPicker.value = colorMap[selectedTheme] || "#4299e1";
+                            customPrimaryColor = colorPicker.value;
+                        }
+                        logger.info('主题设置', '选择预设主题', { theme: selectedTheme });
+                    }
+                });
+            }
+            
+            // 颜色选择器
+            const colorPicker = document.getElementById("colorPicker");
+            if (colorPicker) {
+                colorPicker.onchange = function() {
+                    customPrimaryColor = this.value;
+                    logger.info('主题设置', '自定义颜色', { color: customPrimaryColor });
+                };
+            }
+            
+            // 确认应用主题
+            const themeConfirmBtn = document.getElementById("themeConfirmBtn");
+            if (themeConfirmBtn) {
+                themeConfirmBtn.onclick = function() {
+                    applyTheme(selectedTheme, customPrimaryColor);
+                    saveTheme(selectedTheme, customPrimaryColor);
+                    const themeModal = document.getElementById("themeModal");
+                    if (themeModal) themeModal.classList.add("hide");
+                    logger.info('主题设置', '应用新主题', { theme: selectedTheme, color: customPrimaryColor });
+                };
+            }
+        }
+
+        // 绑定日志事件
+        function bindLogEvents() {
+            // 打开日志弹窗
+            const logExportBtn = document.getElementById("logExportBtn");
+            if (logExportBtn) {
+                logExportBtn.onclick = function() {
+                    try {
+                        const logModal = document.getElementById("logModal");
+                        const logContent = document.getElementById("logContent");
+                        logContent.innerText = logger.getFormattedLogs();
+                        logModal.classList.remove("hide");
+                        logger.info('日志工具', '打开日志弹窗');
+                    } catch (e) {
+                        logger.error('日志工具', '打开日志弹窗失败', e);
+                    }
+                };
+            }
+
+            // 清空日志
+            const logClearBtn = document.getElementById("logClearBtn");
+            if (logClearBtn) {
+                logClearBtn.onclick = function() {
+                    if (confirm('确定要清空所有日志吗？')) {
+                        logger.clearLogs();
+                        document.getElementById("logContent").innerText = '';
+                        logger.info('日志工具', '日志已清空');
+                    }
+                };
+            }
+
+            // 导出日志
+            const logSaveBtn = document.getElementById("logSaveBtn");
+            if (logSaveBtn) {
+                logSaveBtn.onclick = function() {
+                    try {
+                        logger.exportLogs();
+                        alert('日志导出成功！');
+                    } catch (e) {
+                        logger.error('日志工具', '日志导出失败', e);
+                        alert('日志导出失败：' + e.message);
+                    }
+                };
+            }
+        }
+
+        // 获取用户信息
+        function getUserInfo() {
+            // 修复：使用相对路径，添加响应状态校验
+            fetch('/api/get_user_info', {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({user_id: userInfo.user_id})
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(`服务器错误：${res.status}`);
+                return res.json();
+            })
+            .then(data => {
+                // 修复：判断code=0
+                if (data.code === 0) {
+                    const userData = data.data;
+                    isVip = userData.vip_type > 0;
+                    
+                    const countTip = document.getElementById("countTip");
+                    const vipStatusTip = document.getElementById("vipStatusTip");
+                    
+                    if (isVip) {
+                        if (countTip) countTip.classList.add("hide");
+                        if (vipStatusTip) {
+                            const expireTime = new Date(userData.vip_expire_time * 1000);
+                            const expireStr = `${expireTime.getFullYear()}-${(expireTime.getMonth()+1).toString().padStart(2, '0')}-${expireTime.getDate().toString().padStart(2, '0')}`;
+                            const vipName = userData.vip_type === 1 ? "月会员" : userData.vip_type === 2 ? "季会员" : "年会员";
+                            vipStatusTip.innerText = `✅ 当前为${vipName}，有效期至${expireStr}，无限制生成`;
+                            vipStatusTip.classList.remove("hide");
+                        }
+                        logger.info('用户信息', 'VIP状态更新', { vip_type: userData.vip_type, expire_time: expireStr });
+                    } else {
+                        if (vipStatusTip) vipStatusTip.classList.add("hide");
+                        if (countTip) {
+                            countTip.innerText = `今日免费生成次数：${userData.free_count}次`;
+                            countTip.classList.remove("hide");
+                        }
+                        logger.info('用户信息', '免费次数更新', { free_count: userData.free_count });
+                    }
+                    
+                    userInfo.vip_type = userData.vip_type;
+                    userInfo.vip_expire_time = userData.vip_expire_time;
+                    localStorage.setItem("ai_creator_user", JSON.stringify(userInfo));
+                } else if (data.code === 404) {
+                    alert("用户信息失效，请重新登录");
+                    localStorage.removeItem("ai_creator_user");
+                    autoLogin();
+                    logger.error('用户信息', '用户信息失效', { user_id: userInfo.user_id });
+                }
+            })
+            .catch(err => {
+                logger.error('用户信息', '获取用户信息异常', err);
+            });
+        }
+
+        // 获取历史记录
+        function getHistory() {
+            // 修复：使用相对路径，添加响应状态校验
+            fetch('/api/get_history', {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({user_id: userInfo.user_id})
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(`服务器错误：${res.status}`);
+                return res.json();
+            })
+            .then(data => {
+                const historyList = document.getElementById("historyList");
+                if (!historyList) return;
+                
+                // 修复：判断code=0
+                if (data.code === 0 && data.data.length > 0) {
+                    let html = "";
+                    data.data.forEach(item => {
+                        html += `
+                            <div class="history-item">
+                                <div class="history-time">${item.time} | ${item.type === "short_video" ? "短/长视频" : "办公"}</div>
+                                <div class="history-prompt">需求：${item.prompt}</div>
+                                <div class="history-content">${item.content.substring(0, 100)}${item.content.length > 100 ? "..." : ""}</div>
+                            </div>
+                        `;
+                    });
+                    historyList.innerHTML = html;
+                    logger.info('历史记录', '获取历史记录成功', { count: data.data.length });
+                } else {
+                    historyList.innerHTML = '<div style="text-align:center; color:var(--text-gray); padding:20px 0;">暂无生成记录，快去创作吧~</div>';
+                    logger.info('历史记录', '无历史记录', { user_id: userInfo.user_id });
+                }
+            })
+            .catch(err => {
+                logger.error('历史记录', '获取历史记录异常', err);
+                historyList.innerHTML = '<div style="text-align:center; color:var(--text-gray); padding:20px 0;">加载失败，请重试~</div>';
+            });
+        }
+    </script>
+
+    <div class="form-item">
+        <label>关于：<br>--制作：Li Muyang（李沐阳）<br>邮箱limuyang3u8633@outlook.com <br>--或 3868612604@qq.com<br>----欢迎联系与反馈</label>
+    </div>
+
+</body>
+</html>
