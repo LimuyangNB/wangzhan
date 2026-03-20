@@ -6,14 +6,14 @@ import hashlib
 # 初始化 Flask 应用
 app = Flask(__name__)
 
-# 数据库配置（请替换成你 Railway 的数据库信息）
+# 数据库配置
 DB_CONFIG = {
-    'host': '你的数据库主机地址',
-    'user': '你的数据库用户名',
-    'password': '你的数据库密码',
-    'database': '你的数据库名',
-    'port': 3306,
-    'charset': 'utf8mb4'
+    'host': os.getenv('PGHOST'),
+    'user': os.getenv('PGUSER'),
+    'password': os.getenv('PGPASSWORD'),
+    'database': os.getenv('PGDATABASE'),
+    'port': int(os.getenv('PGPORT', 5432)),  # PostgreSQL 默认端口是 5432
+    'client_encoding': 'utf8'
 }
 
 # -------------------------- 核心接口 --------------------------
