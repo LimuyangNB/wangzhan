@@ -6,11 +6,7 @@ import hashlib
 import logging
 import requests
 from logging.handlers import TimedRotatingFileHandler
-from flask import Flask, render_template, g 
-from flask import (
-    Flask, render_template, g,
-    request, session, redirect, url_for
-)
+from flask import Flask, render_template, g, request, session, redirect, url_for
 import secrets
 
 # ====================== 核心配置======================
