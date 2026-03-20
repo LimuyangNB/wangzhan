@@ -19,6 +19,18 @@ DB_CONFIG = {
 # -------------------------- 核心接口 --------------------------
 # 1. 根路由（解决 404 关键！）
 @app.route('/')
+def test_db():
+    try:
+        import psycopg2
+        conn = psycopg2.connect(**DB_CONFIG)
+        cur = conn.cursor()
+        cur.execute("SELECT 1")
+        cur.close()
+        conn.close()
+        return jsonify({"status": "success", "message": "数据库连接正常"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+        
 def index():
     return jsonify({
         "status": "success",
