@@ -45,6 +45,7 @@ def close_connection(exception):
 # 初始化数据库（首次运行自动创建表）
 def init_db():
     with app.app_context():
+        init_db()  # 确保启动时就创建所有表
         db = get_db()
         cursor = db.cursor()
         
@@ -194,50 +195,31 @@ def get_history():
         return jsonify({'code': 500, 'msg': '服务器内部错误'})
 
 # 4. AI内容生成
-@app.route('/api/ai_create', methods=['POST'])
+@app.route('/api/', methods=['POST'])
 def ai_create():
     try:
+        # 1. 接收参数
         data = request.get_json()
-        user_id = data.get('user_id', '').strip()
+        user_id = data.get('user_id', '')
         prompt = data.get('prompt', '').strip()
-        type = data.get('type', 'short_video')
         
+        # 2. 简单参数校验
         if not user_id or not prompt:
-            return jsonify({'code': 400, 'msg': '必要参数不能为空'})
+            return jsonify({'code': 400, 'msg': 'user_id和创作需求不能为空'})
         
-        # 模拟AI生成（实际项目替换为真实大模型调用）
-        if type == 'short_video':
-            content = f"""【短视频创作结果】
-需求：{prompt}
-生成内容：
-1. 标题：{prompt[:10]}+趣味吸睛后缀
-2. 文案：{prompt}，用生动有趣的语言扩展至200字左右
-3. 拍摄建议：搭配相关画面，语速适中，结尾引导互动
-（注：实际部署请对接真实AI接口）"""
-        else:
-            content = f"""【办公创作结果】
-需求：{prompt}
-生成内容：
-{prompt}，用正式/简洁的语言扩展至300字左右，逻辑清晰，重点突出
-（注：实际部署请对接真实AI接口）"""
+        # 3. 极简版生成逻辑（跳过数据库保存，先保证能返回结果）
+        content = f"✅ 创作成功！\n你的需求：{prompt}\n生成内容：这是一段测试内容，实际部署时替换为真实AI调用。"
         
-        # 保存到历史记录
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute(
-            'INSERT INTO history (user_id, type, prompt, content, create_time) VALUES (?, ?, ?, ?, ?)',
-            (user_id, type, prompt, content, int(datetime.now().timestamp()))
-        )
-        db.commit()
-        
+        # 4. 返回结果
         return jsonify({
             'code': 200,
             'data': {'content': content}
         })
     
     except Exception as e:
-        logger.error(f"AI生成接口异常：{str(e)}")
-        return jsonify({'code': 500, 'msg': '服务器内部错误'})
+        # 打印详细错误日志（关键！）
+        logger.error(f"AI生成接口异常：{str(e)} | 错误类型：{type(e).__name__}")
+        return jsonify({'code': 500, 'msg': f'服务器内部错误：{str(e)}'}), 500
 
 # 5. 获取会员套餐
 @app.route('/api/get_vip_packages', methods=['GET'])
