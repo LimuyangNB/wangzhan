@@ -9,9 +9,9 @@ app = Flask(__name__)
 # 数据库配置
 DB_CONFIG = {
     'host': "postgres.railway.internal",
-    'user': postgres,
-    'password': UDqEjxjaXGyXTdCyXTmWjneXNGAGnJXx,
-    'database': railway,
+    'user': "postgres",
+    'password': "UDqEjxjaXGyXTdCyXTmWjneXNGAGnJXx",
+    'database': "railway",
     'port': 5432,
     'client_encoding': 'utf8'
 }
