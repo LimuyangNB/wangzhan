@@ -60,6 +60,10 @@ logger = setup_logger()
 # 基础配置
 app = Flask(__name__)
 
+@app.route('/')
+def index():
+    return render_template('index.html')  # 注意：Flask 默认会去 templates 文件夹找模板
+
 # 自动管理SECRET_KEY，重启不失效
 SECRET_KEY_FILE = '.secret_key'
 if os.path.exists(SECRET_KEY_FILE):
