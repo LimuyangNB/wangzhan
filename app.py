@@ -1,5 +1,5 @@
 # 导入必要的库
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify, render_template
 import pymysql
 import hashlib
 
