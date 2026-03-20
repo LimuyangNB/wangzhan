@@ -1,3 +1,70 @@
+import os
+import sqlite3
+import logging
+from datetime import datetime
+from flask import Flask, request, jsonify, render_template
+
+# 初始化Flask应用
+app = Flask(__name__)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# 数据库连接函数
+def get_db():
+    db = sqlite3.connect('app.db')
+    db.row_factory = sqlite3.Row
+    return db
+
+# 初始化数据库
+def init_db():
+    db = get_db()
+    cursor = db.cursor()
+    
+    # 创建用户表
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS users (
+        user_id TEXT PRIMARY KEY,
+        username TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        phone TEXT,
+        create_time INTEGER,
+        is_vip BOOLEAN DEFAULT 0
+    )
+    ''')
+    
+    # 创建创作历史表
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT NOT NULL,
+        type TEXT NOT NULL,
+        prompt TEXT NOT NULL,
+        content TEXT NOT NULL,
+        create_time INTEGER NOT NULL
+    )
+    ''')
+    
+    # 创建会员套餐表
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS vip_packages (
+        package_id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        price REAL NOT NULL,
+        cycle TEXT NOT NULL,
+        desc TEXT NOT NULL  # 修正：补全字段定义，闭合括号
+    )
+    ''')
+    
+    # 插入默认会员套餐
+    cursor.execute('INSERT OR IGNORE INTO vip_packages VALUES (?, ?, ?, ?, ?)',
+                  ('monthly', '月度会员', 19.9, '月', '无限制创作次数+更多风格选择'))
+    cursor.execute('INSERT OR IGNORE INTO vip_packages VALUES (?, ?, ?, ?, ?)',
+                  ('yearly', '年度会员', 199.0, '年', '全部特权+优先使用新功能'))
+    
+    db.commit()
+    logger.info("数据库初始化完成")
+
+# 生成自定义内容函数
 def get_custom_content(req_type, prompt, platform, tone):
     if req_type == "short_video":
         return f"""
@@ -24,18 +91,7 @@ def get_custom_content(req_type, prompt, platform, tone):
 ## 三、注意事项
 1. 格式规范：XXX
 2. 提交时间：XXX
-"""desc TEXT
-            )
-        ''')
-        
-        # 插入默认会员套餐
-        cursor.execute('INSERT OR IGNORE INTO vip_packages VALUES (?, ?, ?, ?, ?)',
-                      ('monthly', '月度会员', 19.9, '月', '无限制创作次数+更多风格选择'))
-        cursor.execute('INSERT OR IGNORE INTO vip_packages VALUES (?, ?, ?, ?, ?)',
-                      ('yearly', '年度会员', 199.0, '年', '全部特权+优先使用新功能'))
-        
-        db.commit()
-        logger.info("数据库初始化完成")
+"""
 
 # --------------------------
 # 页面路由
@@ -72,7 +128,7 @@ def login():
                 'code': 200,
                 'data': {
                     'user_id': user['user_id'],
-                                        'username': user['username'],
+                    'username': user['username'],
                     'is_vip': bool(user['is_vip']),
                     'token': token
                 }
@@ -252,4 +308,3 @@ if __name__ == '__main__':
     init_db()
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=True)  # 测试阶段开启debug
-            
