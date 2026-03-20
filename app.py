@@ -107,32 +107,69 @@ def login():
             "message": f"登录失败：{str(e)}"
         }), 500
 
+# 4. 用户注册接口
 @app.route('/api/register', methods=['POST'])
 def register():
     try:
+        # 获取请求参数
         data = request.get_json()
-        if not data:
-            return jsonify({"status":"error","message":"请传JSON数据"}),400
+        if not data:  # 新增：容错空请求
+            return jsonify({
+                "status": "error",
+                "message": "请求格式错误，请传递 JSON 数据"
+            }), 400
         
         username = data.get('username')
         password = data.get('password')
         email = data.get('email')
         
         if not username or not password or not email:
-            return jsonify({"status":"error","message":"参数不全"}),400
+            return jsonify({
+                "status": "error",
+                "message": "用户名、密码、邮箱不能为空"
+            }), 400
         
-        # 暂时跳过数据库操作，直接返回成功
+        # 密码加密（逻辑不变）
+        encrypted_pwd = hashlib.md5(password.encode()).hexdigest()
+        
+        # 连接 PostgreSQL
+        conn = psycopg2.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        
+        # 检查用户名是否已存在
+        cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
+        if cursor.fetchone():
+            cursor.close()
+            conn.close()
+            return jsonify({
+                "status": "error",
+                "message": "用户名已存在"
+            }), 409
+        
+        # 插入新用户（修复：PostgreSQL 用 CURRENT_TIMESTAMP 替换 NOW()）
+        cursor.execute(
+            "INSERT INTO users (username, password, email, is_vip, create_time) VALUES (%s, %s, %s, 0, CURRENT_TIMESTAMP)",
+            (username, encrypted_pwd, email)
+        )
+        conn.commit()
+        
+        # 获取新用户ID（修复：PostgreSQL 获取自增ID的方式）
+        cursor.execute("SELECT currval(pg_get_serial_sequence('users', 'id'))")
+        user_id = cursor.fetchone()[0]
+        
+        cursor.close()
+        conn.close()
+        
         return jsonify({
-            "status":"success",
-            "message":"注册成功（测试版）",
-            "data":{"user_id":1,"username":username}
-        }),201
+            "status": "success",
+            "message": "注册成功",
+            "data": {"user_id": user_id, "username": username}
+        }), 201
     except Exception as e:
         return jsonify({
-            "status":"error",
-            "message":f"注册失败：{str(e)}",
-            "error_type":str(type(e))
-        }),500
+            "status": "error",
+            "message": f"注册失败：{str(e)}"
+        }), 500
 
 # -------------------------- 启动配置 --------------------------
 if __name__ == '__main__':
