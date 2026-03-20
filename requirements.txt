@@ -1,7 +1,7 @@
 # 项目核心依赖
 flask>=2.0.0
 flask-cors>=4.0.0
+# MySQL数据库驱动
+pymysql>=1.1.0
 # 部署用的WSGI服务器
-gunicorn>=21.0.0
-# MySQL数据库驱动（必须加，解决ModuleNotFoundError）
-pymysql
+gunicorn>=25.1.0
