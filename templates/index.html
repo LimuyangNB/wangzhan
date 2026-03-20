@@ -132,6 +132,22 @@
         .log-export-action button {flex: 1; padding: 10px 0; border-radius: 6px; border: none; font-size: 14px; cursor: pointer;}
         .log-clear-btn {background: #ef4444; color: white;}
         .log-save-btn {background: var(--primary); color: white;}
+        
+        /* 日志导出按钮样式 */
+        #logExportBtn {
+            position: fixed;
+            bottom: 90px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 90;
+        }
     </style>
 </head>
 <body id="appBody" class="theme-lightblue">
@@ -236,9 +252,25 @@
     </div>
 
     <div class="vip-modal hide" id="vipModal">
-        <div class="vip-modal-content modal-inner"> <!-- 修复：添加modal-inner类 -->
+        <div class="vip-modal-content modal-inner">
             <div class="vip-modal-title">开通VIP会员</div>
             <div class="vip-package-list" id="vipPackageList">
+                <!-- 会员套餐列表（动态生成） -->
+                <div class="vip-package-item active" data-package-id="1">
+                    <div class="package-name">月会员</div>
+                    <div class="package-price">¥19.9/月</div>
+                    <div class="package-desc">无限制生成，每月更新</div>
+                </div>
+                <div class="vip-package-item" data-package-id="2">
+                    <div class="package-name">季会员</div>
+                    <div class="package-price">¥49.9/季</div>
+                    <div class="package-desc">无限制生成，立省9.8元</div>
+                </div>
+                <div class="vip-package-item" data-package-id="3">
+                    <div class="package-name">年会员</div>
+                    <div class="package-price">¥159/年</div>
+                    <div class="package-desc">无限制生成，立省79.8元</div>
+                </div>
             </div>
             <button class="vip-pay-btn" id="vipPayBtn">立即支付</button>
             <button class="vip-close-btn" id="vipCloseBtn">关闭</button>
@@ -247,7 +279,7 @@
     </div>
 
     <div class="auth-modal hide" id="authModal">
-        <div class="auth-modal-content modal-inner"> <!-- 修复：添加modal-inner类 -->
+        <div class="auth-modal-content modal-inner">
             <div class="auth-tabs">
                 <div class="auth-tab active" data-tab="login">登录</div>
                 <div class="auth-tab" data-tab="register">注册</div>
@@ -284,7 +316,7 @@
     </div>
 
     <div class="theme-modal hide" id="themeModal">
-        <div class="theme-modal-content modal-inner"> <!-- 修复：添加modal-inner类 -->
+        <div class="theme-modal-content modal-inner">
             <div class="theme-modal-title">自定义主题色</div>
             <div class="theme-custom">
                 <label for="colorPicker">手动选择：</label>
@@ -305,7 +337,7 @@
     </div>
 
     <div class="log-modal hide" id="logModal">
-        <div class="log-modal-content modal-inner"> <!-- 修复：添加modal-inner类 -->
+        <div class="log-modal-content modal-inner">
             <div class="log-modal-title">
                 <span>客户端日志</span>
                 <button class="log-close-btn" id="logCloseBtn">×</button>
@@ -342,7 +374,7 @@
             saveLogs() {
                 try {
                     if (this.logs.length > this.MAX_LOG_COUNT) {
-                        this.logs = this.logs.slice(-this.MAX_LOG_COUNT); // 修复：切片后保留最新1000条
+                        this.logs = this.logs.slice(-this.MAX_LOG_COUNT); // 保留最新1000条
                     }
                     localStorage.setItem(this.LOG_STORAGE_KEY, JSON.stringify(this.logs));
                 } catch (e) {
@@ -351,7 +383,7 @@
             }
 
             getTimestamp() {
-                // 修复：手动格式化时间戳，兼容所有浏览器
+                // 手动格式化时间戳，兼容所有浏览器
                 const now = new Date();
                 const pad = n => n.toString().padStart(2, '0');
                 return `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
@@ -395,9 +427,10 @@
             }
 
             getFormattedLogs() {
+                // 修复：logItem.module 而非全局module
                 return this.logs.map(item => {
                     let dataStr = item.data ? JSON.stringify(item.data, null, 2) : '';
-                    return `[${item.time}] [${item.level}] [${module}] ${item.message} ${dataStr}`;
+                    return `[${item.time}] [${item.level}] [${item.module}] ${item.message} ${dataStr}`;
                 }).join('\n');
             }
 
@@ -430,7 +463,7 @@
         let selectedTheme = "theme-lightblue";
         let customPrimaryColor = "#4299e1";
         let selectedPackageId = 1;
-        let recognition = null; // 修复：全局语音识别实例，避免重复创建
+        let recognition = null; // 全局语音识别实例，避免重复创建
         const logger = new ClientLogger();
 
         // 页面加载
@@ -505,7 +538,7 @@
                 if (savedUser) {
                     try {
                         userInfo = JSON.parse(savedUser);
-                        // 修复：校验用户信息完整性
+                        // 校验用户信息完整性
                         if (!userInfo.user_id || !userInfo.username) {
                             throw new Error("用户信息不完整");
                         }
@@ -583,7 +616,8 @@
                 
                 if (customColor) {
                     document.documentElement.style.setProperty('--primary', customColor);
-                    const lightColor = `${customColor}20`;
+                    // 修复：正确生成浅色调（添加20%透明度）
+                    const lightColor = customColor + '20';
                     document.documentElement.style.setProperty('--bg-primary-light', lightColor);
                 }
                 
@@ -617,16 +651,26 @@
                 const mainTabBar = document.getElementById("mainTabBar");
                 const footerVip = document.getElementById("footerVip");
                 const shortVideo = document.getElementById("shortVideo");
-                const logExportBtn = document.getElementById("logExportBtn");
+                const countTip = document.getElementById("countTip");
+                const vipStatusTip = document.getElementById("vipStatusTip");
                 
                 if (userSetting) userSetting.classList.remove("hide");
                 if (username) username.innerText = userInfo.username || "用户";
                 if (mainTabBar) mainTabBar.classList.remove("hide");
                 if (footerVip) footerVip.classList.remove("hide");
                 if (shortVideo) shortVideo.classList.remove("hide");
-                if (logExportBtn) logExportBtn.classList.remove("hide");
+                
+                // 显示次数提示/VIP提示
+                if (isVip) {
+                    if (vipStatusTip) vipStatusTip.classList.remove("hide");
+                    if (countTip) countTip.classList.add("hide");
+                } else {
+                    if (countTip) countTip.classList.remove("hide");
+                    if (vipStatusTip) vipStatusTip.classList.add("hide");
+                }
                 
                 getVipPackages();
+                loadHistory(); // 加载历史记录
                 logger.info('主界面', '主界面显示成功', { username: userInfo.username });
             } catch (e) {
                 logger.error('主界面', '主界面显示失败', e);
@@ -688,49 +732,38 @@
                         const password = document.getElementById("loginPassword")?.value.trim() || '';
                         const loginStatus = document.getElementById("loginStatus");
                         
-                        if (loginStatus) loginStatus.innerText = "";
-                        
                         if (!username || !password) {
-                            if (loginStatus) loginStatus.innerText = "用户名/密码不能为空";
-                            logger.warn('登录', '用户名/密码为空', { username });
+                            if (loginStatus) loginStatus.innerText = "用户名和密码不能为空";
+                            logger.warn('登录', '用户名或密码为空');
                             return;
                         }
                         
-                        // 修复：使用相对路径，添加响应状态校验
-                        fetch('/api/login', {
-                            method: "POST",
-                            headers: {"Content-Type": "application/json"},
-                            body: JSON.stringify({username, password})
-                        })
-                        .then(res => {
-                            if (!res.ok) throw new Error(`服务器错误：${res.status}`);
-                            return res.json();
-                        })
-                        .then(data => {
-                            // 修复：判断code=0（后端通用成功码）
-                            if (data.code === 0) {
-                                userInfo = {
-                                    user_id: data.data.user_id,
-                                    username: data.data.username,
-                                    vip_type: data.data.vip_type,
-                                    vip_expire_time: data.data.vip_expire_time
-                                };
-                                localStorage.setItem("ai_creator_user", JSON.stringify(userInfo));
-                                autoLogin();
-                                logger.info('登录', '登录成功', { username, user_id: data.data.user_id });
-                            } else {
-                                if (loginStatus) loginStatus.innerText = data.msg;
-                                logger.warn('登录', '登录失败', { username, msg: data.msg });
-                            }
-                        })
-                        .catch(err => {
-                            if (loginStatus) loginStatus.innerText = "服务器内部错误，请重试";
-                            logger.error('登录', '登录请求异常', err);
-                        });
+                        // 模拟登录（实际项目替换为接口请求）
+                        const mockUser = {
+                            user_id: Date.now(),
+                            username: username,
+                            isVip: false
+                        };
+                        userInfo = mockUser;
+                        isVip = mockUser.isVip;
+                        localStorage.setItem("ai_creator_user", JSON.stringify(mockUser));
+                        
+                        const authModal = document.getElementById("authModal");
+                        if (authModal) authModal.classList.add("hide");
+                        
+                        showMainUI();
+                        logger.info('登录', '登录成功', { username });
+                        
+                        // 显示日志按钮
+                        const logBtn = document.getElementById("logExportBtn");
+                        if (logBtn) logBtn.classList.remove("hide");
+                        
                     } catch (e) {
-                        logger.error('登录', '登录按钮点击异常', e);
+                        const loginStatus = document.getElementById("loginStatus");
+                        if (loginStatus) loginStatus.innerText = "登录失败，请重试";
+                        logger.error('登录', '登录异常', e);
                     }
-                };
+                }
             }
             
             // 注册按钮
@@ -740,46 +773,42 @@
                     try {
                         const username = document.getElementById("regUsername")?.value.trim() || '';
                         const password = document.getElementById("regPassword")?.value.trim() || '';
-                        const phone = document.getElementById("regPhone")?.value.trim() || '';
+                        const regPhone = document.getElementById("regPhone")?.value.trim() || '';
                         const registerStatus = document.getElementById("registerStatus");
                         
-                        if (registerStatus) registerStatus.innerText = "";
-                        
                         if (!username || !password) {
-                            if (registerStatus) registerStatus.innerText = "用户名/密码不能为空";
-                            logger.warn('注册', '用户名/密码为空', { username });
+                            if (registerStatus) registerStatus.innerText = "用户名和密码不能为空";
+                            logger.warn('注册', '用户名或密码为空');
                             return;
                         }
                         
-                        // 修复：使用相对路径，添加响应状态校验
-                        fetch('/api/register', {
-                            method: "POST",
-                            headers: {"Content-Type": "application/json"},
-                            body: JSON.stringify({username, password, phone})
-                        })
-                        .then(res => {
-                            if (!res.ok) throw new Error(`服务器错误：${res.status}`);
-                            return res.json();
-                        })
-                        .then(data => {
-                            // 修复：判断code=0
-                            if (data.code === 0) {
-                                if (registerStatus) registerStatus.innerText = "注册成功，请登录";
-                                document.querySelectorAll(".auth-tab")[0]?.click();
-                                logger.info('注册', '注册成功', { username, phone });
-                            } else {
-                                if (registerStatus) registerStatus.innerText = data.msg;
-                                logger.warn('注册', '注册失败', { username, msg: data.msg });
-                            }
-                        })
-                        .catch(err => {
-                            if (registerStatus) registerStatus.innerText = "服务器内部错误，请重试";
-                            logger.error('注册', '注册请求异常', err);
-                        });
+                        // 模拟注册（实际项目替换为接口请求）
+                        const mockUser = {
+                            user_id: Date.now(),
+                            username: username,
+                            phone: regPhone,
+                            isVip: false
+                        };
+                        userInfo = mockUser;
+                        isVip = mockUser.isVip;
+                        localStorage.setItem("ai_creator_user", JSON.stringify(mockUser));
+                        
+                        const authModal = document.getElementById("authModal");
+                        if (authModal) authModal.classList.add("hide");
+                        
+                        showMainUI();
+                        logger.info('注册', '注册成功', { username, phone: regPhone });
+                        
+                        // 显示日志按钮
+                        const logBtn = document.getElementById("logExportBtn");
+                        if (logBtn) logBtn.classList.remove("hide");
+                        
                     } catch (e) {
-                        logger.error('注册', '注册按钮点击异常', e);
+                        const registerStatus = document.getElementById("registerStatus");
+                        if (registerStatus) registerStatus.innerText = "注册失败，请重试";
+                        logger.error('注册', '注册异常', e);
                     }
-                };
+                }
             }
         }
 
@@ -788,416 +817,362 @@
             const logoutBtn = document.getElementById("logoutBtn");
             if (logoutBtn) {
                 logoutBtn.onclick = function() {
-                    if (confirm("确定要退出登录吗？退出后将取消自动登录")) {
+                    try {
                         localStorage.removeItem("ai_creator_user");
                         userInfo = null;
                         isVip = false;
                         
-                        document.getElementById("userSetting")?.classList.add("hide");
-                        document.getElementById("mainTabBar")?.classList.add("hide");
-                        document.getElementById("footerVip")?.classList.add("hide");
-                        document.querySelectorAll(".tab-content").forEach(c => c.classList.add("hide"));
-                        document.getElementById("authModal")?.classList.remove("hide");
+                        // 隐藏主界面，显示登录弹窗
+                        const userSetting = document.getElementById("userSetting");
+                        const mainTabBar = document.getElementById("mainTabBar");
+                        const footerVip = document.getElementById("footerVip");
+                        const shortVideo = document.getElementById("shortVideo");
+                        const office = document.getElementById("office");
+                        const history = document.getElementById("history");
+                        const logExportBtn = document.getElementById("logExportBtn");
+                        const authModal = document.getElementById("authModal");
                         
-                        logger.info('退出登录', '用户退出登录');
+                        if (userSetting) userSetting.classList.add("hide");
+                        if (mainTabBar) mainTabBar.classList.add("hide");
+                        if (footerVip) footerVip.classList.add("hide");
+                        if (shortVideo) shortVideo.classList.add("hide");
+                        if (office) office.classList.add("hide");
+                        if (history) history.classList.add("hide");
+                        if (logExportBtn) logExportBtn.classList.add("hide");
+                        if (authModal) authModal.classList.remove("hide");
+                        
+                        logger.info('退出登录', '退出成功');
+                    } catch (e) {
+                        logger.error('退出登录', '退出异常', e);
                     }
-                };
+                }
             }
         }
 
-        // 绑定选项卡事件
+        // 绑定标签页切换事件
         function bindTabEvent() {
             const tabItems = document.querySelectorAll(".tab-item");
             const tabContents = document.querySelectorAll(".tab-content");
             
             if (!tabItems || !tabContents) return;
             
-            tabItems.forEach(item => {
-                item.onclick = function() {
-                    tabItems.forEach(i => i.classList.remove("active"));
+            tabItems.forEach(tab => {
+                tab.onclick = function() {
+                    tabItems.forEach(t => t.classList.remove("active"));
                     this.classList.add("active");
-                    const tab = this.dataset.tab;
+                    const tabName = this.dataset.tab;
                     
-                    tabContents.forEach(c => c.classList.add("hide"));
-                    const content = document.getElementById(tab);
-                    if (content) content.classList.remove("hide");
+                    tabContents.forEach(content => {
+                        content.classList.add("hide");
+                        if (content.id === tabName) {
+                            content.classList.remove("hide");
+                        }
+                    });
                     
-                    if (tab === "history") getHistory();
+                    // 如果切换到历史标签，重新加载历史记录
+                    if (tabName === 'history') {
+                        loadHistory();
+                    }
+                    
+                    logger.info('标签切换', `切换到${tabName}标签`);
                 }
             });
         }
 
-        // 绑定生成事件
+        // 绑定生成按钮事件
         function bindCreateEvent() {
-            // 短视频生成
-            const svCreate = document.getElementById("svCreate");
-            if (svCreate) {
-                svCreate.onclick = function() {
+            // 短视频创作生成
+            const svCreateBtn = document.getElementById("svCreate");
+            if (svCreateBtn) {
+                svCreateBtn.onclick = function() {
                     try {
+                        const platform = document.getElementById("svPlatform")?.value || '';
+                        const tone = document.getElementById("svTone")?.value || '';
                         const prompt = document.getElementById("svPrompt")?.value.trim() || '';
+                        const svResult = document.getElementById("svResult");
+                        
                         if (!prompt) {
                             alert("请输入创作需求！");
-                            logger.warn('AI生成', '生成需求为空');
+                            logger.warn('生成内容', '短视频创作需求为空');
                             return;
                         }
                         
-                        const params = {
-                            user_id: userInfo.user_id,
-                            req_type: "short_video",
-                            prompt: prompt,
-                            platform: document.getElementById("svPlatform")?.value || '抖音',
-                            tone: document.getElementById("svTone")?.value || '带货'
-                        };
+                        // 模拟AI生成（实际项目替换为接口请求）
+                        svResult.innerText = `【${platform}】${tone}风格：${prompt}\n\n--- AI生成内容示例 ---\n根据你的需求，为你生成适配${platform}平台的${tone}风格内容：\n1. 标题：${prompt.substring(0, 10)}...\n2. 脚本：这是适配${tone}风格的${platform}短视频脚本内容，可根据实际需求调整。`;
                         
-                        logger.info('AI生成', '开始短视频生成', { prompt: prompt.substring(0, 20) });
-                        aiCreateRequest(params, "svResult");
+                        // 保存到历史记录
+                        saveHistory({
+                            type: 'shortVideo',
+                            platform,
+                            tone,
+                            prompt,
+                            result: svResult.innerText
+                        });
+                        
+                        logger.info('生成内容', '短视频内容生成成功', { platform, tone, prompt });
                     } catch (e) {
-                        logger.error('AI生成', '短视频生成按钮点击异常', e);
+                        logger.error('生成内容', '短视频内容生成失败', e);
+                        alert("生成失败，请重试！");
                     }
-                };
+                }
             }
             
-            // 办公生成
-            const ofCreate = document.getElementById("ofCreate");
-            if (ofCreate) {
-                ofCreate.onclick = function() {
+            // 办公创作生成
+            const ofCreateBtn = document.getElementById("ofCreate");
+            if (ofCreateBtn) {
+                ofCreateBtn.onclick = function() {
                     try {
+                        const tone = document.getElementById("ofTone")?.value || '';
                         const prompt = document.getElementById("ofPrompt")?.value.trim() || '';
+                        const ofResult = document.getElementById("ofResult");
+                        
                         if (!prompt) {
                             alert("请输入创作需求！");
-                            logger.warn('AI生成', '办公生成需求为空');
+                            logger.warn('生成内容', '办公创作需求为空');
                             return;
                         }
                         
-                        const params = {
-                            user_id: userInfo.user_id,
-                            req_type: "office",
-                            prompt: prompt,
-                            platform: "通用",
-                            tone: document.getElementById("ofTone")?.value || '正式'
-                        };
+                        // 模拟AI生成（实际项目替换为接口请求）
+                        ofResult.innerText = `【${tone}风格】${prompt}\n\n--- AI生成内容示例 ---\n根据你的需求，为你生成${tone}风格的办公内容：\n${prompt}\n\n以上内容为${tone}风格，符合办公场景使用规范，可根据实际情况调整。`;
                         
-                        logger.info('AI生成', '开始办公生成', { prompt: prompt.substring(0, 20) });
-                        aiCreateRequest(params, "ofResult");
+                        // 保存到历史记录
+                        saveHistory({
+                            type: 'office',
+                            tone,
+                            prompt,
+                            result: ofResult.innerText
+                        });
+                        
+                        logger.info('生成内容', '办公内容生成成功', { tone, prompt });
                     } catch (e) {
-                        logger.error('AI生成', '办公生成按钮点击异常', e);
+                        logger.error('生成内容', '办公内容生成失败', e);
+                        alert("生成失败，请重试！");
                     }
-                };
-            }
-        }
-
-        // AI生成请求
-        function aiCreateRequest(params, resultId) {
-            // 修复：使用相对路径，添加响应状态校验
-            fetch('/api/ai_create', {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(params)
-            })
-            .then(res => {
-                if (!res.ok) throw new Error(`服务器错误：${res.status}`);
-                return res.json();
-            })
-            .then(data => {
-                // 修复：判断code=0
-                if (data.code === 0) {
-                    const result = document.getElementById(resultId);
-                    if (result) result.innerText = data.data.content;
-                    getUserInfo();
-                    alert("生成成功！");
-                    logger.info('AI生成', '生成成功', { req_type: params.req_type });
-                } else if (data.code === 403) {
-                    alert(data.msg);
-                    if (!isVip) openVipModal();
-                    logger.warn('AI生成', '免费次数用尽', { user_id: params.user_id });
-                } else {
-                    alert(data.msg);
-                    logger.warn('AI生成', '生成失败', { msg: data.msg });
                 }
-            })
-            .catch(err => {
-                logger.error('AI生成', '生成请求异常', err);
-                alert('生成失败：服务器内部错误，请重试');
-            });
+            }
         }
 
         // 绑定语音输入事件
         function bindVoiceEvent() {
+            // 检查浏览器是否支持语音识别
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) {
-                alert("你的浏览器不支持语音输入，请更换手机浏览器！");
+                logger.warn('语音输入', '浏览器不支持语音识别');
                 return;
             }
-            // 修复：全局唯一实例，避免重复创建
-            recognition = recognition || new SpeechRecognition();
-            recognition.lang = "zh-CN";
-            recognition.interimResults = false;
-
-            // 短视频语音
-            const svVoice = document.getElementById("svVoice");
-            if (svVoice) {
-                svVoice.onclick = function() {
-                    startVoiceRecognition(recognition, "svPrompt");
-                };
+            
+            // 短视频语音输入
+            const svVoiceBtn = document.getElementById("svVoice");
+            if (svVoiceBtn) {
+                svVoiceBtn.onclick = function() {
+                    startVoiceRecognition('svPrompt');
+                }
             }
             
-            // 办公语音
-            const ofVoice = document.getElementById("ofVoice");
-            if (ofVoice) {
-                ofVoice.onclick = function() {
-                    startVoiceRecognition(recognition, "ofPrompt");
-                };
+            // 办公语音输入
+            const ofVoiceBtn = document.getElementById("ofVoice");
+            if (ofVoiceBtn) {
+                ofVoiceBtn.onclick = function() {
+                    startVoiceRecognition('ofPrompt');
+                }
             }
         }
 
-        // 语音识别
-        function startVoiceRecognition(recog, inputId) {
+        // 语音识别核心方法
+        function startVoiceRecognition(targetId) {
             try {
-                recog.start();
-                alert("正在识别语音，请说话...");
-                recog.onresult = function(event) {
-                    const text = event.results[0][0].transcript;
-                    const input = document.getElementById(inputId);
-                    if (input) input.value = text;
-                    alert("语音识别完成！");
-                    logger.info('语音输入', '语音识别成功', { inputId, text: text.substring(0, 20) });
+                // 关闭已有识别实例
+                if (recognition) {
+                    recognition.stop();
+                    recognition = null;
+                }
+                
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                recognition.lang = 'zh-CN';
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+                
+                const targetInput = document.getElementById(targetId);
+                if (!targetInput) return;
+                
+                // 开始识别
+                recognition.start();
+                alert("开始语音输入，请说话...");
+                logger.info('语音输入', `开始识别（目标：${targetId}）`);
+                
+                // 识别结果
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    targetInput.value = transcript;
+                    logger.info('语音输入', '识别成功', { transcript });
+                    alert(`识别结果：${transcript}`);
                 };
-                recog.onerror = function(err) {
-                    alert("语音识别失败：" + err.message);
-                    logger.error('语音输入', '语音识别失败', err);
+                
+                // 识别结束
+                recognition.onend = function() {
+                    recognition = null;
+                    logger.info('语音输入', '识别结束');
                 };
+                
+                // 识别错误
+                recognition.onerror = function(event) {
+                    logger.error('语音输入', '识别错误', event.error);
+                    alert(`语音识别失败：${event.error}`);
+                    recognition = null;
+                };
+                
             } catch (e) {
-                logger.error('语音输入', '启动语音识别失败', e);
+                logger.error('语音输入', '启动识别失败', e);
                 alert("语音输入初始化失败，请重试！");
             }
         }
 
-        // 绑定复制事件
+        // 绑定复制按钮事件
         function bindCopyEvent() {
             // 短视频复制
-            const svCopy = document.getElementById("svCopy");
-            if (svCopy) {
-                svCopy.onclick = function() {
-                    const text = document.getElementById("svResult")?.innerText || '';
-                    if (!text) {
-                        alert("暂无生成内容可复制！");
-                        return;
-                    }
-                    copyToClipboard(text);
-                };
+            const svCopyBtn = document.getElementById("svCopy");
+            if (svCopyBtn) {
+                svCopyBtn.onclick = function() {
+                    const content = document.getElementById("svResult")?.innerText || '';
+                    copyToClipboard(content);
+                }
             }
             
             // 办公复制
-            const ofCopy = document.getElementById("ofCopy");
-            if (ofCopy) {
-                ofCopy.onclick = function() {
-                    const text = document.getElementById("ofResult")?.innerText || '';
-                    if (!text) {
-                        alert("暂无生成内容可复制！");
-                        return;
-                    }
-                    copyToClipboard(text);
-                };
+            const ofCopyBtn = document.getElementById("ofCopy");
+            if (ofCopyBtn) {
+                ofCopyBtn.onclick = function() {
+                    const content = document.getElementById("ofResult")?.innerText || '';
+                    copyToClipboard(content);
+                }
             }
         }
 
         // 复制到剪贴板
         function copyToClipboard(text) {
             try {
+                if (!text) {
+                    alert("暂无内容可复制！");
+                    return;
+                }
+                
                 navigator.clipboard.writeText(text).then(() => {
                     alert("复制成功！");
-                    logger.info('复制功能', '复制内容成功', { length: text.length });
+                    logger.info('复制内容', '内容复制到剪贴板成功');
                 }).catch(err => {
-                    // 降级方案
-                    const textArea = document.createElement("textarea");
+                    // 降级方案：创建临时文本框
+                    const textArea = document.createElement('textarea');
                     textArea.value = text;
                     document.body.appendChild(textArea);
                     textArea.select();
-                    document.execCommand("copy");
+                    document.execCommand('copy');
                     document.body.removeChild(textArea);
                     alert("复制成功！");
-                    logger.info('复制功能', '降级复制成功', { length: text.length });
+                    logger.info('复制内容', '降级方案复制成功');
                 });
             } catch (e) {
-                logger.error('复制功能', '复制失败', e);
+                logger.error('复制内容', '复制失败', e);
                 alert("复制失败，请手动复制！");
             }
         }
 
-        // 获取VIP套餐
-        function getVipPackages() {
-            // 修复：使用相对路径，添加响应状态校验
-            fetch('/api/get_vip_packages', {
-                method: "GET",
-                headers: {"Content-Type": "application/json"}
-            })
-            .then(res => {
-                if (!res.ok) throw new Error(`服务器错误：${res.status}`);
-                return res.json();
-            })
-            .then(data => {
-                // 修复：判断code=0
-                if (data.code === 0) {
-                    const packageList = document.getElementById("vipPackageList");
-                    if (!packageList) return;
-                    
-                    packageList.innerHTML = "";
-                    Object.keys(data.data).forEach(key => {
-                        const pkg = data.data[key];
-                        const days = Math.floor(pkg.duration / (24 * 3600));
-                        const item = document.createElement("div");
-                        item.className = key == 1 ? "vip-package-item active" : "vip-package-item";
-                        item.dataset.id = key;
-                        item.innerHTML = `
-                            <div class="package-name">${pkg.name}</div>
-                            <div class="package-price">¥${pkg.price}</div>
-                            <div class="package-desc">有效期${days}天，无限制生成</div>
-                        `;
-                        item.onclick = function() {
-                            document.querySelectorAll(".vip-package-item").forEach(i => i.classList.remove("active"));
-                            this.classList.add("active");
-                            selectedPackageId = this.dataset.id;
-                        };
-                        packageList.appendChild(item);
-                    });
-                    
-                    logger.info('VIP套餐', '获取套餐列表成功', { count: Object.keys(data.data).length });
-                }
-            })
-            .catch(err => {
-                logger.error('VIP套餐', '获取套餐失败', err);
-            });
-        }
-
-        // 打开VIP弹窗
-        function openVipModal() {
-            const vipModal = document.getElementById("vipModal");
-            if (vipModal) vipModal.classList.remove("hide");
-            logger.info('VIP弹窗', '打开VIP弹窗');
-        }
-
-        // 绑定VIP事件
+        // 绑定VIP相关事件
         function bindVipEvent() {
-            // 开通VIP按钮
+            // 打开VIP弹窗
             const vipBtn = document.getElementById("vipBtn");
             if (vipBtn) {
                 vipBtn.onclick = function() {
-                    openVipModal();
-                };
+                    const vipModal = document.getElementById("vipModal");
+                    if (vipModal) vipModal.classList.remove("hide");
+                    logger.info('VIP操作', '打开VIP弹窗');
+                }
             }
             
-            // 支付按钮
+            // 选择VIP套餐
+            const vipPackageItems = document.querySelectorAll(".vip-package-item");
+            if (vipPackageItems) {
+                vipPackageItems.forEach(item => {
+                    item.onclick = function() {
+                        vipPackageItems.forEach(i => i.classList.remove("active"));
+                        this.classList.add("active");
+                        selectedPackageId = parseInt(this.dataset.packageId) || 1;
+                        logger.info('VIP操作', `选择套餐ID：${selectedPackageId}`);
+                    }
+                });
+            }
+            
+            // 支付VIP
             const vipPayBtn = document.getElementById("vipPayBtn");
             if (vipPayBtn) {
                 vipPayBtn.onclick = function() {
-                    const payStatus = document.getElementById("vipPayStatus");
-                    if (payStatus) payStatus.innerText = "正在创建订单...";
-                    
-                    const params = {
-                        user_id: userInfo.user_id,
-                        package_id: selectedPackageId
-                    };
-                    
-                    // 修复：使用相对路径，添加响应状态校验
-                    fetch('/api/create_vip_order', {
-                        method: "POST",
-                        headers: {"Content-Type": "application/json"},
-                        body: JSON.stringify(params)
-                    })
-                    .then(res => {
-                        if (!res.ok) throw new Error(`服务器错误：${res.status}`);
-                        return res.json();
-                    })
-                    .then(data => {
-                        // 修复：判断code=0
-                        if (data.code === 0) {
-                            // 模拟支付
-                            if (payStatus) payStatus.innerText = "订单创建成功，正在模拟支付...";
+                    try {
+                        const vipPayStatus = document.getElementById("vipPayStatus");
+                        if (vipPayStatus) vipPayStatus.innerText = "支付中...";
+                        
+                        // 模拟支付（实际项目替换为支付接口）
+                        setTimeout(() => {
+                            isVip = true;
+                            userInfo.isVip = true;
+                            localStorage.setItem("ai_creator_user", JSON.stringify(userInfo));
                             
+                            const countTip = document.getElementById("countTip");
+                            const vipStatusTip = document.getElementById("vipStatusTip");
+                            if (countTip) countTip.classList.add("hide");
+                            if (vipStatusTip) vipStatusTip.classList.remove("hide");
+                            
+                            if (vipPayStatus) vipPayStatus.innerText = "支付成功！已开通VIP会员";
+                            logger.info('VIP操作', `套餐${selectedPackageId}支付成功`);
+                            
+                            // 2秒后关闭弹窗
                             setTimeout(() => {
-                                fetch('/api/query_order_status', {
-                                    method: "POST",
-                                    headers: {"Content-Type": "application/json"},
-                                    body: JSON.stringify({order_no: data.data.order_no})
-                                })
-                                .then(res => {
-                                    if (!res.ok) throw new Error(`服务器错误：${res.status}`);
-                                    return res.json();
-                                })
-                                .then(payData => {
-                                    // 修复：判断code=0
-                                    if (payData.code === 0) {
-                                        if (payStatus) payStatus.innerText = "支付成功！正在刷新VIP状态...";
-                                        getUserInfo();
-                                        setTimeout(() => {
-                                            const vipModal = document.getElementById("vipModal");
-                                            if (vipModal) vipModal.classList.add("hide");
-                                            alert("VIP开通成功！");
-                                        }, 1000);
-                                    }
-                                })
-                                .catch(err => {
-                                    logger.error('VIP支付', '查询订单状态失败', err);
-                                    if (payStatus) payStatus.innerText = "查询订单失败，请重试！";
-                                });
-                            }, 1500);
-                        } else {
-                            if (payStatus) payStatus.innerText = "创建订单失败：" + data.msg;
-                        }
-                    })
-                    .catch(err => {
-                        logger.error('VIP支付', '创建订单失败', err);
-                        if (payStatus) payStatus.innerText = "服务器内部错误，请重试！";
-                    });
-                };
+                                const vipModal = document.getElementById("vipModal");
+                                if (vipModal) vipModal.classList.add("hide");
+                            }, 2000);
+                        }, 1500);
+                        
+                    } catch (e) {
+                        const vipPayStatus = document.getElementById("vipPayStatus");
+                        if (vipPayStatus) vipPayStatus.innerText = "支付失败，请重试！";
+                        logger.error('VIP操作', '支付失败', e);
+                    }
+                }
             }
         }
 
         // 绑定关闭按钮事件
         function bindCloseBtnEvent() {
-            // VIP关闭按钮
+            // 关闭VIP弹窗
             const vipCloseBtn = document.getElementById("vipCloseBtn");
             if (vipCloseBtn) {
                 vipCloseBtn.onclick = function() {
                     const vipModal = document.getElementById("vipModal");
                     if (vipModal) vipModal.classList.add("hide");
-                    logger.info('VIP弹窗', '关闭VIP弹窗');
-                };
+                    logger.info('弹窗操作', '关闭VIP弹窗');
+                }
             }
             
-            // 日志关闭按钮
+            // 关闭日志弹窗
             const logCloseBtn = document.getElementById("logCloseBtn");
             if (logCloseBtn) {
                 logCloseBtn.onclick = function() {
                     const logModal = document.getElementById("logModal");
                     if (logModal) logModal.classList.add("hide");
-                    logger.info('日志工具', '关闭日志弹窗');
-                };
+                    logger.info('弹窗操作', '关闭日志弹窗');
+                }
             }
-            
-            // 点击模态框背景关闭
-            const modals = document.querySelectorAll(".vip-modal, .auth-modal, .theme-modal, .log-modal");
-            modals.forEach(modal => {
-                modal.onclick = function(e) {
-                    // 修复：只点击背景（非内容区）才关闭
-                    if (!e.target.closest('.modal-inner')) {
-                        this.classList.add("hide");
-                        logger.info('模态框', '点击背景关闭弹窗', { modal: this.id });
-                    }
-                };
-            });
         }
 
-        // 绑定主题事件
+        // 绑定主题设置事件
         function bindThemeEvent() {
-            // 打开主题设置
-            const themeSet = document.getElementById("themeSet");
-            if (themeSet) {
-                themeSet.onclick = function() {
+            // 打开主题弹窗
+            const themeSetBtn = document.getElementById("themeSet");
+            if (themeSetBtn) {
+                themeSetBtn.onclick = function() {
                     const themeModal = document.getElementById("themeModal");
                     if (themeModal) themeModal.classList.remove("hide");
-                    logger.info('主题设置', '打开主题设置弹窗');
-                };
+                    logger.info('主题操作', '打开主题设置弹窗');
+                }
             }
             
             // 选择预设主题
@@ -1207,32 +1182,30 @@
                     item.onclick = function() {
                         themeItems.forEach(i => i.classList.remove("active"));
                         this.classList.add("active");
-                        selectedTheme = this.dataset.theme;
+                        selectedTheme = this.dataset.theme || "theme-lightblue";
+                        // 同步更新颜色选择器（取预设主题的主色）
+                        const colorMap = {
+                            "theme-black": "#1f2937",
+                            "theme-white": "#6b7280",
+                            "theme-lightblue": "#4299e1",
+                            "theme-red": "#ef4444",
+                            "theme-lightcyan": "#06b6d4"
+                        };
+                        customPrimaryColor = colorMap[selectedTheme] || "#4299e1";
                         const colorPicker = document.getElementById("colorPicker");
-                        if (colorPicker) {
-                            // 预设主题对应颜色
-                            const colorMap = {
-                                "theme-black": "#1f2937",
-                                "theme-white": "#6b7280",
-                                "theme-lightblue": "#4299e1",
-                                "theme-red": "#ef4444",
-                                "theme-lightcyan": "#06b6d4"
-                            };
-                            colorPicker.value = colorMap[selectedTheme] || "#4299e1";
-                            customPrimaryColor = colorPicker.value;
-                        }
-                        logger.info('主题设置', '选择预设主题', { theme: selectedTheme });
+                        if (colorPicker) colorPicker.value = customPrimaryColor;
+                        logger.info('主题操作', `选择预设主题：${selectedTheme}`);
                     }
                 });
             }
             
-            // 颜色选择器
+            // 自定义颜色选择
             const colorPicker = document.getElementById("colorPicker");
             if (colorPicker) {
                 colorPicker.onchange = function() {
                     customPrimaryColor = this.value;
-                    logger.info('主题设置', '自定义颜色', { color: customPrimaryColor });
-                };
+                    logger.info('主题操作', `选择自定义颜色：${customPrimaryColor}`);
+                }
             }
             
             // 确认应用主题
@@ -1241,158 +1214,128 @@
                 themeConfirmBtn.onclick = function() {
                     applyTheme(selectedTheme, customPrimaryColor);
                     saveTheme(selectedTheme, customPrimaryColor);
+                    
                     const themeModal = document.getElementById("themeModal");
                     if (themeModal) themeModal.classList.add("hide");
-                    logger.info('主题设置', '应用新主题', { theme: selectedTheme, color: customPrimaryColor });
-                };
+                    logger.info('主题操作', '确认应用主题');
+                }
             }
         }
 
-        // 绑定日志事件
+        // 绑定日志相关事件
         function bindLogEvents() {
             // 打开日志弹窗
             const logExportBtn = document.getElementById("logExportBtn");
             if (logExportBtn) {
                 logExportBtn.onclick = function() {
-                    try {
-                        const logModal = document.getElementById("logModal");
-                        const logContent = document.getElementById("logContent");
+                    const logModal = document.getElementById("logModal");
+                    const logContent = document.getElementById("logContent");
+                    if (logModal && logContent) {
                         logContent.innerText = logger.getFormattedLogs();
                         logModal.classList.remove("hide");
-                        logger.info('日志工具', '打开日志弹窗');
-                    } catch (e) {
-                        logger.error('日志工具', '打开日志弹窗失败', e);
                     }
-                };
+                    logger.info('日志操作', '打开日志弹窗');
+                }
             }
-
+            
             // 清空日志
             const logClearBtn = document.getElementById("logClearBtn");
             if (logClearBtn) {
                 logClearBtn.onclick = function() {
-                    if (confirm('确定要清空所有日志吗？')) {
+                    if (confirm("确定要清空日志吗？")) {
                         logger.clearLogs();
-                        document.getElementById("logContent").innerText = '';
-                        logger.info('日志工具', '日志已清空');
+                        const logContent = document.getElementById("logContent");
+                        if (logContent) logContent.innerText = "";
+                        logger.info('日志操作', '清空日志');
                     }
-                };
+                }
             }
-
+            
             // 导出日志
             const logSaveBtn = document.getElementById("logSaveBtn");
             if (logSaveBtn) {
                 logSaveBtn.onclick = function() {
-                    try {
-                        logger.exportLogs();
-                        alert('日志导出成功！');
-                    } catch (e) {
-                        logger.error('日志工具', '日志导出失败', e);
-                        alert('日志导出失败：' + e.message);
-                    }
-                };
+                    logger.exportLogs();
+                    logger.info('日志操作', '导出日志');
+                }
             }
         }
 
-        // 获取用户信息
+        // 获取用户信息（模拟接口）
         function getUserInfo() {
-            // 修复：使用相对路径，添加响应状态校验
-            fetch('/api/get_user_info', {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({user_id: userInfo.user_id})
-            })
-            .then(res => {
-                if (!res.ok) throw new Error(`服务器错误：${res.status}`);
-                return res.json();
-            })
-            .then(data => {
-                // 修复：判断code=0
-                if (data.code === 0) {
-                    const userData = data.data;
-                    isVip = userData.vip_type > 0;
-                    
-                    const countTip = document.getElementById("countTip");
-                    const vipStatusTip = document.getElementById("vipStatusTip");
-                    
-                    if (isVip) {
-                        if (countTip) countTip.classList.add("hide");
-                        if (vipStatusTip) {
-                            const expireTime = new Date(userData.vip_expire_time * 1000);
-                            const expireStr = `${expireTime.getFullYear()}-${(expireTime.getMonth()+1).toString().padStart(2, '0')}-${expireTime.getDate().toString().padStart(2, '0')}`;
-                            const vipName = userData.vip_type === 1 ? "月会员" : userData.vip_type === 2 ? "季会员" : "年会员";
-                            vipStatusTip.innerText = `✅ 当前为${vipName}，有效期至${expireStr}，无限制生成`;
-                            vipStatusTip.classList.remove("hide");
-                        }
-                        logger.info('用户信息', 'VIP状态更新', { vip_type: userData.vip_type, expire_time: expireStr });
-                    } else {
-                        if (vipStatusTip) vipStatusTip.classList.add("hide");
-                        if (countTip) {
-                            countTip.innerText = `今日免费生成次数：${userData.free_count}次`;
-                            countTip.classList.remove("hide");
-                        }
-                        logger.info('用户信息', '免费次数更新', { free_count: userData.free_count });
-                    }
-                    
-                    userInfo.vip_type = userData.vip_type;
-                    userInfo.vip_expire_time = userData.vip_expire_time;
-                    localStorage.setItem("ai_creator_user", JSON.stringify(userInfo));
-                } else if (data.code === 404) {
-                    alert("用户信息失效，请重新登录");
-                    localStorage.removeItem("ai_creator_user");
-                    autoLogin();
-                    logger.error('用户信息', '用户信息失效', { user_id: userInfo.user_id });
-                }
-            })
-            .catch(err => {
-                logger.error('用户信息', '获取用户信息异常', err);
-            });
+            try {
+                // 模拟获取VIP状态
+                isVip = userInfo.isVip || false;
+                logger.info('用户信息', '获取用户信息成功', { isVip });
+            } catch (e) {
+                logger.error('用户信息', '获取用户信息失败', e);
+            }
         }
 
-        // 获取历史记录
-        function getHistory() {
-            // 修复：使用相对路径，添加响应状态校验
-            fetch('/api/get_history', {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({user_id: userInfo.user_id})
-            })
-            .then(res => {
-                if (!res.ok) throw new Error(`服务器错误：${res.status}`);
-                return res.json();
-            })
-            .then(data => {
-                const historyList = document.getElementById("historyList");
-                if (!historyList) return;
+        // 获取VIP套餐（模拟接口）
+        function getVipPackages() {
+            try {
+                // 实际项目中从接口获取套餐列表并渲染
+                logger.info('VIP套餐', '获取套餐列表成功');
+            } catch (e) {
+                logger.error('VIP套餐', '获取套餐列表失败', e);
+            }
+        }
+
+        // 保存历史记录
+        function saveHistory(historyItem) {
+            try {
+                const HISTORY_KEY = 'ai_creator_history';
+                const historyList = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
                 
-                // 修复：判断code=0
-                if (data.code === 0 && data.data.length > 0) {
-                    let html = "";
-                    data.data.forEach(item => {
-                        html += `
-                            <div class="history-item">
-                                <div class="history-time">${item.time} | ${item.type === "short_video" ? "短/长视频" : "办公"}</div>
-                                <div class="history-prompt">需求：${item.prompt}</div>
-                                <div class="history-content">${item.content.substring(0, 100)}${item.content.length > 100 ? "..." : ""}</div>
-                            </div>
-                        `;
-                    });
-                    historyList.innerHTML = html;
-                    logger.info('历史记录', '获取历史记录成功', { count: data.data.length });
-                } else {
-                    historyList.innerHTML = '<div style="text-align:center; color:var(--text-gray); padding:20px 0;">暂无生成记录，快去创作吧~</div>';
-                    logger.info('历史记录', '无历史记录', { user_id: userInfo.user_id });
+                historyItem.id = Date.now();
+                historyItem.createTime = new Date().toLocaleString();
+                historyList.unshift(historyItem); // 最新的放在前面
+                
+                // 最多保留100条历史记录
+                if (historyList.length > 100) {
+                    historyList.pop();
                 }
-            })
-            .catch(err => {
-                logger.error('历史记录', '获取历史记录异常', err);
-                historyList.innerHTML = '<div style="text-align:center; color:var(--text-gray); padding:20px 0;">加载失败，请重试~</div>';
-            });
+                
+                localStorage.setItem(HISTORY_KEY, JSON.stringify(historyList));
+                logger.info('历史记录', '保存成功', { id: historyItem.id });
+            } catch (e) {
+                logger.error('历史记录', '保存失败', e);
+            }
+        }
+
+        // 加载历史记录
+        function loadHistory() {
+            try {
+                const HISTORY_KEY = 'ai_creator_history';
+                const historyList = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+                const historyListDom = document.getElementById("historyList");
+                
+                if (!historyListDom) return;
+                
+                if (historyList.length === 0) {
+                    historyListDom.innerHTML = '<div style="text-align:center; color:var(--text-gray); padding:20px 0;">暂无生成记录，快去创作吧~</div>';
+                    return;
+                }
+                
+                // 渲染历史记录
+                let html = '';
+                historyList.forEach(item => {
+                    html += `
+                        <div class="history-item">
+                            <div class="history-time">${item.createTime}</div>
+                            <div class="history-prompt">${item.prompt.substring(0, 50)}${item.prompt.length > 50 ? '...' : ''}</div>
+                            <div class="history-content">${item.result.substring(0, 100)}${item.result.length > 100 ? '...' : ''}</div>
+                        </div>
+                    `;
+                });
+                
+                historyListDom.innerHTML = html;
+                logger.info('历史记录', '加载成功', { count: historyList.length });
+            } catch (e) {
+                logger.error('历史记录', '加载失败', e);
+            }
         }
     </script>
-
-    <div class="form-item">
-        <label>关于：<br>--制作：Li Muyang（李沐阳）<br>邮箱limuyang3u8633@outlook.com <br>--或 3868612604@qq.com<br>----欢迎联系与反馈</label>
-    </div>
-
 </body>
 </html>
