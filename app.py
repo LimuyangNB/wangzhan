@@ -1,6 +1,6 @@
 # 导入必要的库
 from flask import Flask, request, jsonify
-import pymysql
+import pymysql2
 import hashlib
 
 # 初始化 Flask 应用
@@ -8,11 +8,11 @@ app = Flask(__name__)
 
 # 数据库配置
 DB_CONFIG = {
-    'host': os.getenv('PGHOST'),
-    'user': os.getenv('PGUSER'),
-    'password': os.getenv('PGPASSWORD'),
-    'database': os.getenv('PGDATABASE'),
-    'port': int(os.getenv('PGPORT', 5432)),  # PostgreSQL 默认端口是 5432
+    'host': postgres.railway.internal,
+    'user': postgres,
+    'password': UDqEjxjaXGyXTdCyXTmWjneXNGAGnJXx,
+    'database': railway,
+    'port': 5432
     'client_encoding': 'utf8'
 }
 
