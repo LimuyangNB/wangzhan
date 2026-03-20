@@ -1,1 +1,1 @@
-web: gunicorn --log-level=debug --access-logfile=- --error-logfile=- app:app
+gunicorn app:app -c gunicorn.conf.py
