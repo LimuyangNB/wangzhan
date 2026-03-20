@@ -1,6 +1,9 @@
-flask==2.3.3
-gunicorn==25.1.0
-openai==1.13.3
+fastapi==0.104.1
+uvicorn==0.24.0.post1
+pydantic==2.4.2
+sqlalchemy==2.0.23
+python-multipart==0.0.6
+passlib==1.7.4
+bcrypt==4.0.1
+python-jose==3.3.0
 python-dotenv==1.0.0
-sqlite3==2.6.0
-requests==2.31.0
