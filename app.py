@@ -196,31 +196,26 @@ def get_history():
 
 # 4. AI内容生成
 @app.route('/api/', methods=['POST'])
+@app.route('/api/ai_create', methods=['POST'])
 def ai_create():
     try:
-        # 1. 接收参数
         data = request.get_json()
         user_id = data.get('user_id', '')
         prompt = data.get('prompt', '').strip()
         
-        # 2. 简单参数校验
         if not user_id or not prompt:
             return jsonify({'code': 400, 'msg': 'user_id和创作需求不能为空'})
         
-        # 3. 极简版生成逻辑（跳过数据库保存，先保证能返回结果）
+        # 极简版生成内容（先保证接口能通）
         content = f"✅ 创作成功！\n你的需求：{prompt}\n生成内容：这是一段测试内容，实际部署时替换为真实AI调用。"
         
-        # 4. 返回结果
         return jsonify({
             'code': 200,
             'data': {'content': content}
         })
-    
     except Exception as e:
-        # 打印详细错误日志（关键！）
-        logger.error(f"AI生成接口异常：{str(e)} | 错误类型：{type(e).__name__}")
+        logger.error(f"AI生成接口异常：{str(e)}")
         return jsonify({'code': 500, 'msg': f'服务器内部错误：{str(e)}'}), 500
-
 # 5. 获取会员套餐
 @app.route('/api/get_vip_packages', methods=['GET'])
 def get_vip_packages():
